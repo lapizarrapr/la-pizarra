@@ -19,7 +19,7 @@ Independent news site for Puerto Rico's public school community. One application
 - **Readers:** contact and "Envía tu historia" forms, newsletter sign-up with double confirmation, CSV export. No public comments.
 - **Student safety:** authors flagged as minors never expose last name, photo or social links through the site or its API.
 - **Privacy and security:** no cookies for readers, no ad trackers, strict Content-Security-Policy, spam protection with Turnstile, a honeypot and rate limits.
-- **Quality bar:** WCAG 2.2 AA (automated axe checks on every page type), Lighthouse mobile ≥ 90, 157 automated tests.
+- **Quality bar:** WCAG 2.2 AA (automated axe checks on every page type), Lighthouse mobile ≥ 90, 161 automated tests.
 
 ## Stack
 
