@@ -156,6 +156,18 @@
     transform: rotate(-0.6deg);
   }
 
+  /* Section menu on phones: it scrolls sideways, and fades out at the right
+     edge so it is obvious there is more to see. */
+  .menu-deslizable {
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+    padding-right: 2rem;
+  }
+  .menu-deslizable::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Article body typography. */
   .cuerpo {
     font-size: 1.1875rem;
@@ -206,5 +218,41 @@
     border: 0;
     border-top: 1px solid var(--soft);
     margin-block: 2em;
+  }
+}
+
+/* Printing an article: just the text, in black on white. */
+@media print {
+  :root {
+    --bg: #fff;
+    --fg: #000;
+    --muted: #333;
+    --accent: #000;
+    --soft: #999;
+    --surface: #fff;
+  }
+  .mast nav,
+  .mast button,
+  .mast a[aria-label],
+  footer,
+  form,
+  [aria-label='Compartir'],
+  .no-imprimir {
+    display: none !important;
+  }
+  .mast {
+    background: none !important;
+    color: #000 !important;
+  }
+  body {
+    font-size: 11pt;
+  }
+  a {
+    text-decoration: none;
+  }
+  .cuerpo a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    word-break: break-all;
   }
 }

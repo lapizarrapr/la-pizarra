@@ -76,7 +76,7 @@ export function Cabecera({
         </p>
         {navegacion.principal?.length ? (
           <nav aria-label={t.secciones} className="-mx-1">
-            <ul className="font-ui flex gap-x-1 overflow-x-auto py-2 text-sm font-medium whitespace-nowrap [scrollbar-width:none]">
+            <ul className="font-ui flex gap-x-1 menu-deslizable overflow-x-auto py-2 text-sm font-medium whitespace-nowrap">
               {navegacion.principal.map((item) => (
                 <li key={item.id}>
                   <Link

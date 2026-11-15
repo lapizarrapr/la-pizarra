@@ -57,6 +57,10 @@ After every phase: lint, typecheck and tests must pass before committing.
 - Email: `src/lib/email/adaptador.ts` picks Resend, SMTP or a console stand-in from env vars; templates in `plantillas.ts` (always escape visitor input). Restart `pnpm dev` after changing `payload.config.ts`-level settings such as the email adapter: the Payload instance is cached.
 - "Quién firma" author box at the end of articles: `components/CajaDeAutores.tsx` (photo or monogram, description, bio). Minors need no special case there; the API already strips their photo and name.
 - After `pnpm seed` with the dev server running, cached pages stay stale until something is saved in the admin (the seed runs outside Next.js, so it cannot expire the cache).
+- Security headers and both Content-Security-Policies (public, admin) are built in `next.config.ts`. Any new third-party script, frame or image host must be added there or the browser blocks it. Inline scripts stay allowed because static pages need them.
+- Audits (phase 6, production build, sample content): axe WCAG 2.2 AA = 0 violations on 12 page types × light/dark × phone/desktop (`tests/e2e/accesibilidad.e2e.spec.ts`); Lighthouse mobile ≈ 95 performance, 100 accessibility / best practices / SEO on home and article. Run e2e against a production build with `E2E_BASE_URL=http://localhost:3100 pnpm test:e2e`.
+- Lighthouse cannot launch Chrome by itself on this Windows machine ("spawn UNKNOWN"): launch Chromium through Playwright with `--remote-debugging-port` and pass `--port` to Lighthouse.
+- Inter (UI labels) is deliberately not preloaded; it kept LCP under 3 s on throttled mobile.
 - Delete `.next/` if `tsc` reports errors inside `.next/types` after moving routes.
 
 ## Layout
@@ -81,7 +85,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 3. Public site — **done**. Owner chose direction **B "Pizarra"** (green masthead, chalk-yellow accent; Fraunces / Newsreader / Inter). Share buttons, related, prev/next, most-read and search come in phase 4; form blocks render a placeholder until phase 5
 4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons — **done**
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email — **done** (email provider still undecided; Turnstile not yet exercised against Cloudflare)
-6. Design polish, dark mode, accessibility and performance audit
+6. Design polish, dark mode, accessibility and performance audit — **done** (manual screen-reader pass and admin-panel CSP under real editing still to do)
 7. Tests
 8. Deployment (Vercel + Neon + R2), `DEPLOY.md`, `GUIA-EDITORIAL.md`
 

@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Fraunces, Inter, Newsreader } from 'next/font/google'
 import { notFound } from 'next/navigation'
@@ -19,7 +20,14 @@ const newsreader = Newsreader({
   variable: '--font-newsreader',
   display: 'swap',
 })
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+// Inter is only used for small labels, so it is not preloaded: on a slow phone
+// connection the headline font and the lead photo get the bandwidth first.
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  preload: false,
+})
 
 type Props = { children: ReactNode; params: Promise<{ locale: string }> }
 
@@ -86,6 +94,8 @@ export default async function LayoutPublico({ children, params }: Props) {
           {children}
         </main>
         <Pie ajustes={ajustes} navegacion={navegacion} locale={locale} t={t} />
+        {/* Cookie-less page-view counts. Off unless NEXT_PUBLIC_ANALYTICS_ENABLED=true. */}
+        {process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'true' && <Analytics />}
       </body>
     </html>
   )

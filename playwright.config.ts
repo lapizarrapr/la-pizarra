@@ -1,41 +1,43 @@
 import { defineConfig, devices } from '@playwright/test'
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
 import 'dotenv/config'
 
 /**
- * See https://playwright.dev/docs/test-configuration.
+ * End-to-end tests run against a running site with the sample content
+ * loaded (`pnpm db:up && pnpm seed`).
+ *
+ * By default Playwright starts (or reuses) the dev server on port 3000.
+ * Set E2E_BASE_URL to test another instance, e.g. a production build.
  */
+const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3000'
+
 export default defineConfig({
   testDir: './tests/e2e',
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  // The tests share one database, so they run one at a time.
+  workers: 1,
+  fullyParallel: false,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
+  timeout: 60_000,
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    baseURL,
+    locale: 'es-PR',
+    timezoneId: 'America/Puerto_Rico',
     trace: 'on-first-retry',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chromium' },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    reuseExistingServer: true,
-    url: 'http://localhost:3000',
-  },
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        reuseExistingServer: true,
+        url: baseURL,
+        timeout: 180_000,
+      },
 })
