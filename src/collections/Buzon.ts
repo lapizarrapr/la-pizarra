@@ -7,7 +7,25 @@
 import type { CollectionConfig } from 'payload'
 
 import { editorOAdmin, nadie, soloAdmin } from '@/access'
+import { esEditorOAdmin, type UsuarioConRol } from '@/access/roles'
 import { diaEnPuertoRico } from '@/lib/fechas'
+import { aCsv } from '@/lib/formularios'
+
+/**
+ * Rate-limit counters for the public forms (see lib/proteccion.ts).
+ * `clave` is a keyed hash, never an IP address. Invisible in the admin.
+ */
+export const Limites: CollectionConfig = {
+  slug: 'limites',
+  admin: { hidden: true },
+  access: { read: nadie, create: nadie, update: nadie, delete: nadie },
+  indexes: [{ fields: ['clave', 'ventana'], unique: true }],
+  fields: [
+    { name: 'clave', type: 'text', required: true },
+    { name: 'ventana', type: 'text', required: true },
+    { name: 'conteo', type: 'number', required: true, defaultValue: 0 },
+  ],
+}
 
 const ROBOTS = /bot|crawl|spider|preview|facebookexternalhit|whatsapp|headless|lighthouse/i
 
@@ -83,9 +101,43 @@ export const Suscriptores: CollectionConfig = {
     group: 'Buzón',
     description:
       'Personas suscritas al boletín. Solo cuentan las confirmadas (doble confirmación).',
+    components: { beforeListTable: ['@/components/admin/ExportarSuscriptores'] },
   },
   defaultSort: '-createdAt',
   access: { read: editorOAdmin, create: nadie, update: soloAdmin, delete: editorOAdmin },
+  endpoints: [
+    {
+      // GET /api/suscriptores/exportar → CSV of confirmed subscribers.
+      // Editors and admins only; the list contains personal data.
+      path: '/exportar',
+      method: 'get',
+      handler: async (req) => {
+        if (!esEditorOAdmin(req.user as UsuarioConRol)) {
+          return Response.json({ message: 'No tienes permiso.' }, { status: 403 })
+        }
+        const { docs } = await req.payload.find({
+          collection: 'suscriptores',
+          where: { estado: { equals: 'confirmado' } },
+          sort: 'email',
+          limit: 50_000,
+          pagination: false,
+          depth: 0,
+          req,
+        })
+        const csv = aCsv([
+          ['email', 'confirmado_en'],
+          ...docs.map((s) => [s.email, s.confirmadoEn ?? '']),
+        ])
+        return new Response(csv, {
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': `attachment; filename="suscriptores-la-pizarra-${diaEnPuertoRico(Date.now())}.csv"`,
+            'Cache-Control': 'no-store',
+          },
+        })
+      },
+    },
+  ],
   fields: [
     {
       name: 'email',

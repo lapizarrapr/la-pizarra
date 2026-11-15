@@ -52,6 +52,11 @@ After every phase: lint, typecheck and tests must pass before committing.
 - Feeds: `/feed.xml` and `/seccion/[slug]/feed.xml`. Also `/sitemap.xml`, `/robots.txt`, `/archivo`, `/archivo/AAAA/MM`, `/buscar?q=`.
 - Social cards: the article photo's `og` size, or a generated card at `/og/articulo/[slug]` (`/og/sitio` for everything else). JSON-LD lives in `src/lib/seo.ts`.
 - Scheduled publishing verified end to end: queue → `GET /api/payload-jobs/run` with `Authorization: Bearer $CRON_SECRET` → article live.
+- Forms: server actions in `src/app/(frontend)/acciones.ts`; check order is spam trap → rate limit → Turnstile → validation → store → email. Validation is pure (`src/lib/formularios.ts`). Rate limit and Turnstile live in `src/lib/proteccion.ts` (Postgres-backed `limites` collection, keyed hash, never an IP). Turnstile is skipped when its keys are unset.
+- Newsletter: `src/lib/newsletter/` (`ProveedorDeBoletin` interface, Payload implementation). Double opt-in with hashed 48h token; confirm and unsubscribe pages act only on a button press (POST), never on opening the link. `enlaceDeBaja(id)` builds the signed unsubscribe link. CSV export: `GET /api/suscriptores/exportar` (editor/admin).
+- Email: `src/lib/email/adaptador.ts` picks Resend, SMTP or a console stand-in from env vars; templates in `plantillas.ts` (always escape visitor input). Restart `pnpm dev` after changing `payload.config.ts`-level settings such as the email adapter: the Payload instance is cached.
+- "Quién firma" author box at the end of articles: `components/CajaDeAutores.tsx` (photo or monogram, description, bio). Minors need no special case there; the API already strips their photo and name.
+- After `pnpm seed` with the dev server running, cached pages stay stale until something is saved in the admin (the seed runs outside Next.js, so it cannot expire the cache).
 - Delete `.next/` if `tsc` reports errors inside `.next/types` after moving routes.
 
 ## Layout
@@ -75,7 +80,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 2. Data model, roles/access control, editorial workflow, seed — **done** (live preview config moves to phase 3, with the article page)
 3. Public site — **done**. Owner chose direction **B "Pizarra"** (green masthead, chalk-yellow accent; Fraunces / Newsreader / Inter). Share buttons, related, prev/next, most-read and search come in phase 4; form blocks render a placeholder until phase 5
 4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons — **done**
-5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email
+5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email — **done** (email provider still undecided; Turnstile not yet exercised against Cloudflare)
 6. Design polish, dark mode, accessibility and performance audit
 7. Tests
 8. Deployment (Vercel + Neon + R2), `DEPLOY.md`, `GUIA-EDITORIAL.md`

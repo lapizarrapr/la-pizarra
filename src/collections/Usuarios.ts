@@ -3,6 +3,9 @@ import { APIError, type CollectionBeforeOperationHook, type CollectionConfig } f
 import { actualizarUsuarios, campoSoloAdmin, leerUsuarios, soloAdmin } from '@/access'
 import { esPersonal, type UsuarioConRol } from '@/access/roles'
 import { validarContrasena } from '@/lib/contrasena'
+import { correoRestablecerContrasena } from '@/lib/email/plantillas'
+
+const SITIO = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
 
 /**
  * Enforces the password strength rule everywhere a password can be set:
@@ -37,6 +40,11 @@ export const Usuarios: CollectionConfig = {
     lockTime: 15 * 60 * 1000,
     tokenExpiration: 60 * 60 * 8,
     useSessions: true,
+    forgotPassword: {
+      generateEmailSubject: () => correoRestablecerContrasena('').subject,
+      generateEmailHTML: (args) =>
+        correoRestablecerContrasena(`${SITIO}/admin/reset/${args?.token ?? ''}`).html,
+    },
     cookies: {
       sameSite: 'Lax',
       secure: process.env.NODE_ENV === 'production',

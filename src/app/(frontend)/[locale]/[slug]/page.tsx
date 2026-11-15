@@ -3,6 +3,7 @@ import { draftMode } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { FormularioDeBoletin, FormularioDeMensaje } from '@/components/cliente/Formularios'
 import { RefrescarAlGuardar } from '@/components/cliente/RefrescarAlGuardar'
 import { ImagenMedia } from '@/components/ImagenMedia'
 import { TextoRico } from '@/components/TextoRico'
@@ -97,15 +98,15 @@ export default async function PaginaFija({ params }: Props) {
             }
 
             case 'formulario':
-              // The working forms arrive in phase 5 (contact, story tips, newsletter).
-              return (
-                <section
+              return bloque.tipo === 'boletin' ? (
+                <FormularioDeBoletin key={bloque.id} titulo={bloque.titulo} />
+              ) : (
+                <FormularioDeMensaje
                   key={bloque.id}
-                  className="border-linea bg-superficie font-ui rounded-md border p-6"
-                >
-                  {bloque.titulo && <h2 className="mb-2 text-xl font-bold">{bloque.titulo}</h2>}
-                  <p className="text-gris">{t.formularioPronto}</p>
-                </section>
+                  tipo={bloque.tipo}
+                  titulo={bloque.titulo}
+                  rutaPrivacidad={r.pagina('privacidad')}
+                />
               )
 
             case 'preguntas':

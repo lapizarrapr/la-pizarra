@@ -76,11 +76,26 @@ const sembrar = async (payload: Payload): Promise<void> => {
     'colaborador',
   )
 
+  // One author gets a placeholder portrait so the "Quién firma" box can be
+  // seen both with a photo and with a monogram.
+  const retrato = await imagenDeMuestra('#3d5a66', 'Retrato')
+  const fotoCarmen = await payload.create({
+    collection: 'media',
+    data: { alt: 'Retrato de muestra de la autora', credito: 'Ilustración de muestra' },
+    file: {
+      data: retrato,
+      mimetype: 'image/png',
+      name: 'muestra-retrato.png',
+      size: retrato.length,
+    },
+  })
+
   const autores: Record<AutorClave, number> = {
     carmen: (
       await payload.create({
         collection: 'autores',
         data: {
+          foto: fotoCarmen.id,
           nombre: 'Carmen',
           apellido: 'Ortiz Vélez',
           etiquetaDeRol: 'Maestra de Español, Caguas',

@@ -9,6 +9,7 @@ export const contrasenaDePrueba = (): string => `Aa1-${randomBytes(12).toString(
 
 const COLECCIONES = [
   'vistas',
+  'limites',
   'articulos',
   'paginas',
   'autores',

@@ -11,12 +11,13 @@ import { fileURLToPath } from 'url'
 
 import { Articulos } from './collections/Articulos'
 import { Autores } from './collections/Autores'
-import { Mensajes, Suscriptores, Vistas } from './collections/Buzon'
+import { Limites, Mensajes, Suscriptores, Vistas } from './collections/Buzon'
 import { Media } from './collections/Media'
 import { Paginas } from './collections/Paginas'
 import { Categorias, Etiquetas } from './collections/Taxonomias'
 import { Usuarios } from './collections/Usuarios'
 import { Ajustes, Navegacion, Portada } from './globals'
+import { adaptadorDeEmail } from './lib/email/adaptador'
 import { ZONA_HORARIA } from './lib/fechas'
 
 const filename = fileURLToPath(import.meta.url)
@@ -79,6 +80,7 @@ export default buildConfig({
     Mensajes,
     Suscriptores,
     Vistas,
+    Limites,
   ],
   globals: [Portada, Ajustes, Navegacion],
 
@@ -90,6 +92,8 @@ export default buildConfig({
       FixedToolbarFeature(),
     ],
   }),
+
+  email: adaptadorDeEmail(),
 
   secret: process.env.PAYLOAD_SECRET || '',
   csrf: [SITIO],

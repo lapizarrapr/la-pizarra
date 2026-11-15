@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { Antetitulo, Fecha, Firmas, TarjetaArticulo, TituloDeBloque } from '@/components/articulos'
+import { CajaDeAutores } from '@/components/CajaDeAutores'
 import { ContarVista } from '@/components/cliente/ContarVista'
 import { RefrescarAlGuardar } from '@/components/cliente/RefrescarAlGuardar'
 import { Compartir } from '@/components/Compartir'
@@ -195,6 +196,8 @@ export default async function PaginaArticulo({ params }: Props) {
           )}
 
           {!borrador && <Compartir url={url} titulo={articulo.titulo} t={t} />}
+
+          <CajaDeAutores autores={autores} locale={locale} t={t} />
         </div>
       </div>
 

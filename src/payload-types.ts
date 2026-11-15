@@ -30,6 +30,7 @@ export interface Config {
     mensajes: Mensaje;
     suscriptores: Suscriptore;
     vistas: Vista;
+    limites: Limite;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -48,6 +49,7 @@ export interface Config {
     mensajes: MensajesSelect<false> | MensajesSelect<true>;
     suscriptores: SuscriptoresSelect<false> | SuscriptoresSelect<true>;
     vistas: VistasSelect<false> | VistasSelect<true>;
+    limites: LimitesSelect<false> | LimitesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -605,6 +607,18 @@ export interface Vista {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "limites".
+ */
+export interface Limite {
+  id: number;
+  clave: string;
+  ventana: string;
+  conteo: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -758,6 +772,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'vistas';
         value: number | Vista;
+      } | null)
+    | ({
+        relationTo: 'limites';
+        value: number | Limite;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1093,6 +1111,17 @@ export interface SuscriptoresSelect<T extends boolean = true> {
 export interface VistasSelect<T extends boolean = true> {
   articulo?: T;
   dia?: T;
+  conteo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "limites_select".
+ */
+export interface LimitesSelect<T extends boolean = true> {
+  clave?: T;
+  ventana?: T;
   conteo?: T;
   updatedAt?: T;
   createdAt?: T;

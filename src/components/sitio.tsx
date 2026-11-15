@@ -7,6 +7,7 @@ import { rutas } from '@/lib/rutas'
 import type { Ajuste, Articulo, Media, Navegacion } from '@/payload-types'
 
 import { BotonTema } from './cliente/BotonTema'
+import { FormularioDeBoletin } from './cliente/Formularios'
 import { ImagenMedia } from './ImagenMedia'
 
 type Base = { locale: string; t: Diccionario }
@@ -163,6 +164,11 @@ export function Pie({
             </ul>
           </nav>
         ))}
+      </div>
+      <div className="contenedor border-linea border-t py-8">
+        <div className="max-w-md">
+          <FormularioDeBoletin compacto />
+        </div>
       </div>
       <div className="contenedor border-linea text-gris flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t py-5 text-xs">
         {navegacion.textoLegal && <p>{navegacion.textoLegal}</p>}
