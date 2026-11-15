@@ -49,7 +49,7 @@ After every phase: lint, typecheck and tests must pass before committing.
 - A deploy rehearsal on an empty local database passed (migrate, first content, build, every public route 200, create-first-user screen, jobs endpoint 401 without the secret). Nothing has run on Vercel, Neon, R2, Turnstile or a real email provider yet: `DEPLOY.md` ends with the checklist of what to verify there.
 - `.next/cache` keeps cached lookups (for example section id by slug) for up to an hour **across builds**. After building against a different database (a rehearsal, a restored copy), delete `.next/cache` before the next build, or section pages come up empty and never refresh. Vercel is unaffected as long as the database stays the same.
 - On Windows, stopping a background `pnpm start` can leave the Node process holding its port; check with `netstat -ano` and `taskkill` it.
-- The owner chose a **public** GitHub repository (15 Nov 2026), so the 10-minute timer stays as is. Never commit anything private: no real names of students, no exports, no `.env*` files. The local git email is the owner's personal address: offer to rewrite it to their GitHub noreply address before the first push.
+- The owner chose a **public** GitHub repository (15 Nov 2026), so the 10-minute timer stays as is. Never commit anything private: no real names of students, no exports, no `.env*` files. All commits use the owner's GitHub noreply address (set in this repo's git config); keep it that way.
 
 ## Public site notes
 
