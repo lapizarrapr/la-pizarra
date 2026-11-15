@@ -13,7 +13,7 @@ Independent news site for Puerto Rico's public school community. The owner is a 
 
 ## Commands
 
-`pnpm dev` · `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm format` · `pnpm test:unit` · `pnpm test:int` (needs Postgres) · `pnpm test:e2e` · `pnpm db:up` · `pnpm generate:types` · `pnpm generate:importmap`
+`pnpm dev` · `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm format` · `pnpm test:unit` · `pnpm test:int` (needs Postgres) · `pnpm test:e2e` · `pnpm db:up` · `pnpm seed` (wipes and refills the LOCAL database with fictional content) · `pnpm generate:types` · `pnpm generate:importmap`
 
 After every phase: lint, typecheck and tests must pass before committing.
 
@@ -29,6 +29,16 @@ After every phase: lint, typecheck and tests must pass before committing.
 - **pnpm 12:** build-script approvals live in `pnpm-workspace.yaml` (`allowBuilds`), not in `package.json`.
 - Files in `src/app/(payload)/` come from the Payload template and should not be edited by hand.
 
+## Data model notes
+
+- Collections: `articulos`, `categorias`, `etiquetas`, `media`, `paginas`, `autores`, `usuarios`, `mensajes`, `suscriptores`, `vistas`. Globals: `portada`, `ajustes`, `navegacion`.
+- Roles on `usuarios.rol`: `admin`, `editor`, `colaborador`. The first account ever created becomes admin.
+- Workflow rules live in `src/hooks/flujoEditorial.ts` (pure) and are applied in `Articulos.ts`. Field validation runs AFTER collection `beforeChange` hooks, so a select `filterOptions` must allow any value a hook may set.
+- `mensajes`, `suscriptores`, `vistas` have `create` closed to the API; server code writes them with the Local API.
+- Fields with a default that are `required` are also required in the generated create types; slugs use a `validate` function instead of `required` for that reason.
+- `payload run` exits when the module finishes loading: scripts must use top-level `await`.
+- Changing a collection slug or a `localized` flag in dev makes the schema push prompt interactively; reset the local DB instead (`docker compose down -v && pnpm db:up && pnpm seed`).
+
 ## Layout
 
 ```
@@ -36,6 +46,8 @@ src/payload.config.ts      Payload configuration
 src/app/(payload)/         Admin panel + REST/GraphQL API (template files)
 src/app/(frontend)/        Public site
 src/collections/           Payload collections
+src/globals/ blocks/ fields/ hooks/ access/   Globals, editor blocks, shared fields, workflow, access rules
+src/seed/                  Fictional sample content (`pnpm seed`)
 src/lib/                   Shared utilities (fechas.ts, later search/, email/, seo/)
 tests/unit|int|e2e/        Vitest unit, Vitest integration (Local API), Playwright
 docker-compose.yml         Local Postgres (+ lapizarra_test database)
@@ -45,7 +57,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 ## Phase plan
 
 1. Setup — **done**
-2. Data model, roles/access control, editorial workflow, seed
+2. Data model, roles/access control, editorial workflow, seed — **done** (live preview config moves to phase 3, with the article page)
 3. Public site (owner chooses between two visual directions first: A "Edición impresa", B "Pizarra")
 4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email

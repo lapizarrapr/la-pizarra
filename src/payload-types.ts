@@ -12,94 +12,79 @@
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "supportedTimezones".
  */
-export type SupportedTimezones =
-  | 'Pacific/Midway'
-  | 'Pacific/Niue'
-  | 'Pacific/Honolulu'
-  | 'Pacific/Rarotonga'
-  | 'America/Anchorage'
-  | 'Pacific/Gambier'
-  | 'America/Los_Angeles'
-  | 'America/Tijuana'
-  | 'America/Denver'
-  | 'America/Phoenix'
-  | 'America/Chicago'
-  | 'America/Guatemala'
-  | 'America/New_York'
-  | 'America/Bogota'
-  | 'America/Caracas'
-  | 'America/Santiago'
-  | 'America/Buenos_Aires'
-  | 'America/Sao_Paulo'
-  | 'Atlantic/South_Georgia'
-  | 'Atlantic/Azores'
-  | 'Atlantic/Cape_Verde'
-  | 'Europe/London'
-  | 'Europe/Berlin'
-  | 'Africa/Lagos'
-  | 'Europe/Athens'
-  | 'Africa/Cairo'
-  | 'Europe/Moscow'
-  | 'Asia/Riyadh'
-  | 'Asia/Dubai'
-  | 'Asia/Baku'
-  | 'Asia/Karachi'
-  | 'Asia/Tashkent'
-  | 'Asia/Calcutta'
-  | 'Asia/Dhaka'
-  | 'Asia/Almaty'
-  | 'Asia/Jakarta'
-  | 'Asia/Bangkok'
-  | 'Asia/Shanghai'
-  | 'Asia/Singapore'
-  | 'Asia/Tokyo'
-  | 'Asia/Seoul'
-  | 'Australia/Brisbane'
-  | 'Australia/Sydney'
-  | 'Pacific/Guam'
-  | 'Pacific/Noumea'
-  | 'Pacific/Auckland'
-  | 'Pacific/Fiji';
+export type SupportedTimezones = 'America/Puerto_Rico';
 
 export interface Config {
   auth: {
-    users: UserAuthOperations;
+    usuarios: UsuarioAuthOperations;
   };
   blocks: {};
   collections: {
-    users: User;
+    articulos: Articulo;
+    categorias: Categoria;
+    etiquetas: Etiqueta;
     media: Media;
+    paginas: Pagina;
+    autores: Autore;
+    usuarios: Usuario;
+    mensajes: Mensaje;
+    suscriptores: Suscriptore;
+    vistas: Vista;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    articulos: ArticulosSelect<false> | ArticulosSelect<true>;
+    categorias: CategoriasSelect<false> | CategoriasSelect<true>;
+    etiquetas: EtiquetasSelect<false> | EtiquetasSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    paginas: PaginasSelect<false> | PaginasSelect<true>;
+    autores: AutoresSelect<false> | AutoresSelect<true>;
+    usuarios: UsuariosSelect<false> | UsuariosSelect<true>;
+    mensajes: MensajesSelect<false> | MensajesSelect<true>;
+    suscriptores: SuscriptoresSelect<false> | SuscriptoresSelect<true>;
+    vistas: VistasSelect<false> | VistasSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
-  fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
-  locale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | 'es' | 'es'[];
+  globals: {
+    portada: Portada;
+    ajustes: Ajuste;
+    navegacion: Navegacion;
+  };
+  globalsSelect: {
+    portada: PortadaSelect<false> | PortadaSelect<true>;
+    ajustes: AjustesSelect<false> | AjustesSelect<true>;
+    navegacion: NavegacionSelect<false> | NavegacionSelect<true>;
+  };
+  locale: 'es';
   widgets: {
     collections: CollectionsWidget;
   };
-  user: User;
+  user: Usuario;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      schedulePublish: TaskSchedulePublish;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
-export interface UserAuthOperations {
+export interface UsuarioAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -118,11 +103,262 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Noticias, reportajes, opinión y cartas. Quienes colaboran guardan borradores y los envían a revisión; la redacción publica.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "articulos".
  */
-export interface User {
-  id: string;
+export interface Articulo {
+  id: number;
+  titulo: string;
+  /**
+   * Una o dos oraciones que resumen la nota. Aparece bajo el título.
+   */
+  subtitulo?: string | null;
+  /**
+   * El texto alternativo y el crédito se escriben al subir la imagen. Si la foto muestra estudiantes, confirma que hay autorización.
+   */
+  imagenDestacada?: (number | null) | Media;
+  /**
+   * Opcional. Si lo dejas vacío se usa el pie guardado con la imagen.
+   */
+  leyendaImagen?: string | null;
+  cuerpo: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Corrección que se muestra públicamente al final del artículo. Explica qué estaba mal y cuándo se corrigió.
+   */
+  feDeErrata?: string | null;
+  tipo: 'noticia' | 'reportaje' | 'opinion' | 'entrevista' | 'carta_estudiante';
+  region: 'puerto_rico' | 'internacional';
+  /**
+   * Opcional. Elige el pueblo si la nota trata de un lugar específico.
+   */
+  municipio?:
+    | (
+        | 'adjuntas'
+        | 'aguada'
+        | 'aguadilla'
+        | 'aguas-buenas'
+        | 'aibonito'
+        | 'anasco'
+        | 'arecibo'
+        | 'arroyo'
+        | 'barceloneta'
+        | 'barranquitas'
+        | 'bayamon'
+        | 'cabo-rojo'
+        | 'caguas'
+        | 'camuy'
+        | 'canovanas'
+        | 'carolina'
+        | 'catano'
+        | 'cayey'
+        | 'ceiba'
+        | 'ciales'
+        | 'cidra'
+        | 'coamo'
+        | 'comerio'
+        | 'corozal'
+        | 'culebra'
+        | 'dorado'
+        | 'fajardo'
+        | 'florida'
+        | 'guanica'
+        | 'guayama'
+        | 'guayanilla'
+        | 'guaynabo'
+        | 'gurabo'
+        | 'hatillo'
+        | 'hormigueros'
+        | 'humacao'
+        | 'isabela'
+        | 'jayuya'
+        | 'juana-diaz'
+        | 'juncos'
+        | 'lajas'
+        | 'lares'
+        | 'las-marias'
+        | 'las-piedras'
+        | 'loiza'
+        | 'luquillo'
+        | 'manati'
+        | 'maricao'
+        | 'maunabo'
+        | 'mayaguez'
+        | 'moca'
+        | 'morovis'
+        | 'naguabo'
+        | 'naranjito'
+        | 'orocovis'
+        | 'patillas'
+        | 'penuelas'
+        | 'ponce'
+        | 'quebradillas'
+        | 'rincon'
+        | 'rio-grande'
+        | 'sabana-grande'
+        | 'salinas'
+        | 'san-german'
+        | 'san-juan'
+        | 'san-lorenzo'
+        | 'san-sebastian'
+        | 'santa-isabel'
+        | 'toa-alta'
+        | 'toa-baja'
+        | 'trujillo-alto'
+        | 'utuado'
+        | 'vega-alta'
+        | 'vega-baja'
+        | 'vieques'
+        | 'villalba'
+        | 'yabucoa'
+        | 'yauco'
+      )
+    | null;
+  /**
+   * Temas libres. Puedes crear etiquetas nuevas desde aquí.
+   */
+  etiquetas?: (number | Etiqueta)[] | null;
+  /**
+   * Borrador: aún lo estás escribiendo. En revisión: listo para que la redacción lo revise. Para publicar, la redacción usa el botón "Publicar".
+   */
+  estadoEditorial: 'borrador' | 'en_revision' | 'publicado' | 'archivado';
+  /**
+   * Se genera sola a partir del título. Es la parte final del enlace. Evita cambiarla después de publicar.
+   */
+  slug?: string | null;
+  autores: (number | Autore)[];
+  categoria: number | Categoria;
+  destacado?: boolean | null;
+  /**
+   * Muestra la etiqueta "Última hora" junto al titular.
+   */
+  ultimaHora?: boolean | null;
+  /**
+   * Se llena sola al publicar. Para programar una publicación futura usa "Programar publicación" en el menú del botón Publicar.
+   */
+  fechaPublicacion?: string | null;
+  /**
+   * Se llena sola cuando se vuelve a publicar un artículo ya publicado.
+   */
+  fechaActualizacion?: string | null;
+  /**
+   * Se calcula solo.
+   */
+  tiempoDeLectura?: number | null;
+  creadoPor?: (number | null) | Usuario;
+  textoPlano?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Fotos e ilustraciones. Toda imagen necesita texto alternativo. No subas fotos de estudiantes sin autorización escrita de su familia.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Describe lo que se ve, para quienes usan lector de pantalla. Ejemplo: "Maestras marchan frente al Capitolio con pancartas".
+   */
+  alt: string;
+  /**
+   * Quién tomó la foto o de dónde viene. Ejemplo: "Foto: Ana Rivera".
+   */
+  credito?: string | null;
+  leyenda?: string | null;
+  subidoPor?: (number | null) | Usuario;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    pequena?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    mediana?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    grande?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    enorme?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * Personas que pueden entrar al panel. Solo la administración puede crear cuentas.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usuarios".
+ */
+export interface Usuario {
+  id: number;
+  nombre: string;
+  /**
+   * Colaborador/a: escribe sus propios borradores. Editor/a: publica y borra artículos. Administración: además maneja usuarios y ajustes.
+   */
+  rol: 'admin' | 'editor' | 'colaborador';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -141,33 +377,238 @@ export interface User {
       }[]
     | null;
   password?: string | null;
-  collection: 'users';
+  collection: 'usuarios';
+}
+/**
+ * Temas libres para agrupar artículos (por ejemplo: "Ley 85", "Comedores escolares").
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "etiquetas".
+ */
+export interface Etiqueta {
+  id: number;
+  nombre: string;
+  /**
+   * Se genera sola a partir del título. Es la parte final del enlace. Evita cambiarla después de publicar.
+   */
+  slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Perfiles públicos de quienes firman. Para estudiantes menores de edad, marca "Es menor de edad": el sitio nunca mostrará su apellido, foto ni redes.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "autores".
+ */
+export interface Autore {
+  id: number;
+  /**
+   * Se calcula solo al guardar, según las opciones de abajo.
+   */
+  nombrePublico?: string | null;
+  nombre: string;
+  apellido?: string | null;
+  /**
+   * Protege a estudiantes: firma solo con seudónimo o iniciales y oculta apellido, foto y redes del sitio público.
+   */
+  esMenorDeEdad?: boolean | null;
+  usarSeudonimo?: boolean | null;
+  /**
+   * Si lo dejas vacío, se usarán las iniciales.
+   */
+  seudonimo?: string | null;
+  /**
+   * Ejemplo: "Maestra de Ciencias, Bayamón". Para menores, evita datos que permitan identificarles (escuela, grupo, pueblo pequeño).
+   */
+  etiquetaDeRol?: string | null;
+  bio?: string | null;
+  foto?: (number | null) | Media;
+  redes?:
+    | {
+        plataforma: 'x' | 'facebook' | 'instagram' | 'tiktok' | 'threads' | 'bluesky' | 'linkedin' | 'web';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Cuenta con la que esta persona entra al panel (si tiene una).
+   */
+  usuario?: (number | null) | Usuario;
+  /**
+   * Se genera sola. Con seudónimo o menores, siempre sale del nombre público, nunca del nombre real.
+   */
+  slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Las secciones del periódico. Cada una tiene su propia página.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categorias".
+ */
+export interface Categoria {
+  id: number;
+  nombre: string;
+  /**
+   * Se genera sola a partir del título. Es la parte final del enlace. Evita cambiarla después de publicar.
+   */
+  slug?: string | null;
+  /**
+   * Aparece en la página de la sección y en buscadores.
+   */
+  descripcion?: string | null;
+  /**
+   * Número menor aparece primero en el menú.
+   */
+  orden?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Páginas fijas: Sobre Nosotros, Política Editorial, Contacto, Cómo Colaborar, Privacidad.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "paginas".
+ */
+export interface Pagina {
+  id: number;
+  titulo: string;
+  /**
+   * Se genera sola a partir del título. Es la parte final del enlace. Evita cambiarla después de publicar.
+   */
+  slug?: string | null;
+  introduccion?: string | null;
+  bloques?:
+    | (
+        | {
+            contenido: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'texto';
+          }
+        | {
+            titulo: string;
+            texto?: string | null;
+            etiquetaBoton: string;
+            /**
+             * Página interna (por ejemplo /contacto) o enlace completo con https://
+             */
+            enlace: string;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'llamada';
+          }
+        | {
+            imagen: number | Media;
+            leyenda?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imagen';
+          }
+        | {
+            tipo: 'contacto' | 'historia' | 'boletin';
+            titulo?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'formulario';
+          }
+        | {
+            titulo?: string | null;
+            items?:
+              | {
+                  pregunta: string;
+                  respuesta: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'preguntas';
+          }
+      )[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Mensajes de contacto e historias enviadas por el público.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mensajes".
+ */
+export interface Mensaje {
+  id: number;
+  tipo: 'contacto' | 'historia';
+  asunto: string;
+  nombre?: string | null;
+  email?: string | null;
+  mensaje: string;
+  anonimo?: boolean | null;
+  estado: 'nuevo' | 'leido' | 'atendido';
+  notas?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Personas suscritas al boletín. Solo cuentan las confirmadas (doble confirmación).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suscriptores".
+ */
+export interface Suscriptore {
+  id: number;
+  email: string;
+  estado: 'pendiente' | 'confirmado' | 'baja';
+  confirmadoEn?: string | null;
+  bajaEn?: string | null;
+  tokenHash?: string | null;
+  tokenExpira?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
+ * via the `definition` "vistas".
  */
-export interface Media {
-  id: string;
-  alt: string;
+export interface Vista {
+  id: number;
+  articulo: number | Articulo;
+  dia: string;
+  conteo: number;
   updatedAt: string;
   createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -181,23 +622,147 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'schedulePublish';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'schedulePublish') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'articulos';
+        value: number | Articulo;
+      } | null)
+    | ({
+        relationTo: 'categorias';
+        value: number | Categoria;
+      } | null)
+    | ({
+        relationTo: 'etiquetas';
+        value: number | Etiqueta;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'paginas';
+        value: number | Pagina;
+      } | null)
+    | ({
+        relationTo: 'autores';
+        value: number | Autore;
+      } | null)
+    | ({
+        relationTo: 'usuarios';
+        value: number | Usuario;
+      } | null)
+    | ({
+        relationTo: 'mensajes';
+        value: number | Mensaje;
+      } | null)
+    | ({
+        relationTo: 'suscriptores';
+        value: number | Suscriptore;
+      } | null)
+    | ({
+        relationTo: 'vistas';
+        value: number | Vista;
       } | null);
   globalSlug?: string | null;
   user: {
-    relationTo: 'users';
-    value: string | User;
+    relationTo: 'usuarios';
+    value: number | Usuario;
   };
   updatedAt: string;
   createdAt: string;
@@ -207,10 +772,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
-    relationTo: 'users';
-    value: string | User;
+    relationTo: 'usuarios';
+    value: number | Usuario;
   };
   key?: string | null;
   value?:
@@ -230,7 +795,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -238,9 +803,241 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "articulos_select".
  */
-export interface UsersSelect<T extends boolean = true> {
+export interface ArticulosSelect<T extends boolean = true> {
+  titulo?: T;
+  subtitulo?: T;
+  imagenDestacada?: T;
+  leyendaImagen?: T;
+  cuerpo?: T;
+  feDeErrata?: T;
+  tipo?: T;
+  region?: T;
+  municipio?: T;
+  etiquetas?: T;
+  estadoEditorial?: T;
+  slug?: T;
+  autores?: T;
+  categoria?: T;
+  destacado?: T;
+  ultimaHora?: T;
+  fechaPublicacion?: T;
+  fechaActualizacion?: T;
+  tiempoDeLectura?: T;
+  creadoPor?: T;
+  textoPlano?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categorias_select".
+ */
+export interface CategoriasSelect<T extends boolean = true> {
+  nombre?: T;
+  slug?: T;
+  descripcion?: T;
+  orden?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "etiquetas_select".
+ */
+export interface EtiquetasSelect<T extends boolean = true> {
+  nombre?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  credito?: T;
+  leyenda?: T;
+  subidoPor?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?:
+    | T
+    | {
+        pequena?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        mediana?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        grande?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        enorme?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        og?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "paginas_select".
+ */
+export interface PaginasSelect<T extends boolean = true> {
+  titulo?: T;
+  slug?: T;
+  introduccion?: T;
+  bloques?:
+    | T
+    | {
+        texto?:
+          | T
+          | {
+              contenido?: T;
+              id?: T;
+              blockName?: T;
+            };
+        llamada?:
+          | T
+          | {
+              titulo?: T;
+              texto?: T;
+              etiquetaBoton?: T;
+              enlace?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imagen?:
+          | T
+          | {
+              imagen?: T;
+              leyenda?: T;
+              id?: T;
+              blockName?: T;
+            };
+        formulario?:
+          | T
+          | {
+              tipo?: T;
+              titulo?: T;
+              id?: T;
+              blockName?: T;
+            };
+        preguntas?:
+          | T
+          | {
+              titulo?: T;
+              items?:
+                | T
+                | {
+                    pregunta?: T;
+                    respuesta?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "autores_select".
+ */
+export interface AutoresSelect<T extends boolean = true> {
+  nombrePublico?: T;
+  nombre?: T;
+  apellido?: T;
+  esMenorDeEdad?: T;
+  usarSeudonimo?: T;
+  seudonimo?: T;
+  etiquetaDeRol?: T;
+  bio?: T;
+  foto?: T;
+  redes?:
+    | T
+    | {
+        plataforma?: T;
+        url?: T;
+        id?: T;
+      };
+  usuario?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "usuarios_select".
+ */
+export interface UsuariosSelect<T extends boolean = true> {
+  nombre?: T;
+  rol?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -261,21 +1058,44 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
+ * via the `definition` "mensajes_select".
  */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
+export interface MensajesSelect<T extends boolean = true> {
+  tipo?: T;
+  asunto?: T;
+  nombre?: T;
+  email?: T;
+  mensaje?: T;
+  anonimo?: T;
+  estado?: T;
+  notas?: T;
   updatedAt?: T;
   createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suscriptores_select".
+ */
+export interface SuscriptoresSelect<T extends boolean = true> {
+  email?: T;
+  estado?: T;
+  confirmadoEn?: T;
+  bajaEn?: T;
+  tokenHash?: T;
+  tokenExpira?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vistas_select".
+ */
+export interface VistasSelect<T extends boolean = true> {
+  articulo?: T;
+  dia?: T;
+  conteo?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -284,6 +1104,37 @@ export interface MediaSelect<T extends boolean = true> {
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -318,6 +1169,178 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Decide qué aparece en la página principal. Lo que dejes vacío se llena solo con los artículos destacados y más recientes.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portada".
+ */
+export interface Portada {
+  id: number;
+  /**
+   * El titular grande de arriba.
+   */
+  principal?: (number | null) | Articulo;
+  /**
+   * Hasta 6, en el orden en que quieres que aparezcan.
+   */
+  secundarias?: (number | Articulo)[] | null;
+  /**
+   * Secciones que tienen su propia fila en la portada, en orden.
+   */
+  secciones?: (number | Categoria)[] | null;
+  mostrarOpinion?: boolean | null;
+  mostrarVocesEstudiantiles?: boolean | null;
+  mostrarMasLeidas?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Nombre, lema, logo, redes y cintillo de última hora.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ajustes".
+ */
+export interface Ajuste {
+  id: number;
+  nombre: string;
+  lema?: string | null;
+  descripcion?: string | null;
+  /**
+   * Opcional. Si no hay logo se muestra el nombre en texto.
+   */
+  logo?: (number | null) | Media;
+  redes?:
+    | {
+        plataforma: 'whatsapp' | 'facebook' | 'instagram' | 'x' | 'tiktok' | 'youtube' | 'threads' | 'bluesky';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  cintillo?: {
+    activo?: boolean | null;
+    texto?: string | null;
+    /**
+     * Opcional. El cintillo llevará a este artículo.
+     */
+    articulo?: (number | null) | Articulo;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Menú principal y pie de página.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navegacion".
+ */
+export interface Navegacion {
+  id: number;
+  principal?:
+    | {
+        etiqueta: string;
+        /**
+         * Ejemplos: /seccion/opinion, /sobre-nosotros, https://…
+         */
+        enlace: string;
+        id?: string | null;
+      }[]
+    | null;
+  pie?:
+    | {
+        titulo: string;
+        enlaces?:
+          | {
+              etiqueta: string;
+              /**
+               * Ejemplos: /seccion/opinion, /sobre-nosotros, https://…
+               */
+              enlace: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Ejemplo: "© La Pizarra. Hecho por maestras, maestros y estudiantes."
+   */
+  textoLegal?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portada_select".
+ */
+export interface PortadaSelect<T extends boolean = true> {
+  principal?: T;
+  secundarias?: T;
+  secciones?: T;
+  mostrarOpinion?: T;
+  mostrarVocesEstudiantiles?: T;
+  mostrarMasLeidas?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ajustes_select".
+ */
+export interface AjustesSelect<T extends boolean = true> {
+  nombre?: T;
+  lema?: T;
+  descripcion?: T;
+  logo?: T;
+  redes?:
+    | T
+    | {
+        plataforma?: T;
+        url?: T;
+        id?: T;
+      };
+  cintillo?:
+    | T
+    | {
+        activo?: T;
+        texto?: T;
+        articulo?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navegacion_select".
+ */
+export interface NavegacionSelect<T extends boolean = true> {
+  principal?:
+    | T
+    | {
+        etiqueta?: T;
+        enlace?: T;
+        id?: T;
+      };
+  pie?:
+    | T
+    | {
+        titulo?: T;
+        enlaces?:
+          | T
+          | {
+              etiqueta?: T;
+              enlace?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  textoLegal?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
@@ -326,6 +1349,26 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSchedulePublish".
+ */
+export interface TaskSchedulePublish {
+  input: {
+    type?: ('publish' | 'unpublish') | null;
+    locale?: string | null;
+    doc?: {
+      relationTo: 'articulos';
+      value: number | Articulo;
+    } | null;
+    global?: string | null;
+    user?: {
+      relationTo: 'usuarios';
+      value: number | Usuario;
+    } | null;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

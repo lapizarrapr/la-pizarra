@@ -4,7 +4,7 @@ Sitio de noticias independiente de la comunidad escolar pública de Puerto Rico.
 
 Independent news site for Puerto Rico's public school community, built with Next.js (App Router) and Payload CMS in a single app. The admin panel lives at `/admin`.
 
-> Status: phase 1 of 8 (project setup). See `CLAUDE.md` for architecture and the phase plan.
+> Status: phase 2 of 8 done (data model, roles, editorial workflow, sample content). See `CLAUDE.md` for architecture and the phase plan.
 
 ## Requirements
 
@@ -22,10 +22,14 @@ pnpm install
 cp .env.example .env
 ```
 
-Open `.env` and fill in `PAYLOAD_SECRET`, `PREVIEW_SECRET` and `CRON_SECRET` with random strings (the file explains how to generate them). Then start the database and the site:
+Open `.env` and fill in `PAYLOAD_SECRET`, `PREVIEW_SECRET` and `CRON_SECRET` with random strings (the file explains how to generate them), and choose a `SEED_PASSWORD`. Then start the database, load the sample content and start the site:
 
 ```bash
 pnpm db:up
+```
+
+```bash
+pnpm seed
 ```
 
 ```bash
@@ -33,7 +37,7 @@ pnpm dev
 ```
 
 - Public site: http://localhost:3000
-- Admin panel: http://localhost:3000/admin (the first visit asks you to create the first user)
+- Admin panel: http://localhost:3000/admin (sample accounts: `admin@`, `editor@`, `maestra@`, `estudiante@lapizarra.test`, all with your `SEED_PASSWORD`)
 
 ## Commands
 
@@ -42,6 +46,7 @@ pnpm dev
 | `pnpm dev`            | Start the site in development mode                                             |
 | `pnpm build`          | Production build                                                               |
 | `pnpm db:up`          | Start local Postgres (Docker)                                                  |
+| `pnpm seed`           | Wipe the local database and load fictional sample content                      |
 | `pnpm db:down`        | Stop local Postgres                                                            |
 | `pnpm lint`           | ESLint                                                                         |
 | `pnpm typecheck`      | TypeScript, strict mode                                                        |
