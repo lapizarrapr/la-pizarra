@@ -4,7 +4,7 @@ Sitio de noticias independiente de la comunidad escolar pública de Puerto Rico.
 
 Independent news site for Puerto Rico's public school community, built with Next.js (App Router) and Payload CMS in a single app. The admin panel lives at `/admin`.
 
-> Status: phase 6 of 8 done (security headers, accessibility and performance audit, dark mode, print styles).
+> Status: phase 7 of 8 done (unit, integration and browser tests; CI runs all of them). Deployment is next.
 
 ## Requirements
 
@@ -41,21 +41,21 @@ pnpm dev
 
 ## Commands
 
-| Command               | What it does                                                                   |
-| --------------------- | ------------------------------------------------------------------------------ |
-| `pnpm dev`            | Start the site in development mode                                             |
-| `pnpm build`          | Production build                                                               |
-| `pnpm db:up`          | Start local Postgres (Docker)                                                  |
-| `pnpm seed`           | Wipe the local database and load fictional sample content                      |
-| `pnpm db:down`        | Stop local Postgres                                                            |
-| `pnpm lint`           | ESLint                                                                         |
-| `pnpm typecheck`      | TypeScript, strict mode                                                        |
-| `pnpm format`         | Format everything with Prettier                                                |
-| `pnpm test:unit`      | Unit tests (no database needed)                                                |
-| `pnpm test:int`       | Integration tests against the `lapizarra_test` database                        |
-| `pnpm test`           | Unit + integration tests                                                       |
-| `pnpm test:e2e`       | Playwright end-to-end tests (run `pnpm exec playwright install chromium` once) |
-| `pnpm generate:types` | Regenerate `src/payload-types.ts` after changing collections                   |
+| Command               | What it does                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `pnpm dev`            | Start the site in development mode                                                       |
+| `pnpm build`          | Production build                                                                         |
+| `pnpm db:up`          | Start local Postgres (Docker)                                                            |
+| `pnpm seed`           | Wipe the local database and load fictional sample content                                |
+| `pnpm db:down`        | Stop local Postgres                                                                      |
+| `pnpm lint`           | ESLint                                                                                   |
+| `pnpm typecheck`      | TypeScript, strict mode                                                                  |
+| `pnpm format`         | Format everything with Prettier                                                          |
+| `pnpm test:unit`      | Unit tests (no database needed)                                                          |
+| `pnpm test:int`       | Integration tests against the `lapizarra_test` database                                  |
+| `pnpm test`           | Unit + integration tests                                                                 |
+| `pnpm test:e2e`       | Browser tests: needs `pnpm seed` first, and `pnpm exec playwright install chromium` once |
+| `pnpm generate:types` | Regenerate `src/payload-types.ts` after changing collections                             |
 
 ## Environment variables
 

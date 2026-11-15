@@ -57,3 +57,75 @@ jobs:
       - run: pnpm typecheck
 
       - run: pnpm test
+
+  e2e:
+    name: Browser tests (editorial flow, accessibility)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: lapizarra
+          POSTGRES_PASSWORD: lapizarra
+          POSTGRES_DB: lapizarra
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lapizarra -d lapizarra"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://lapizarra:lapizarra@localhost:5432/lapizarra
+      PAYLOAD_SECRET: ci-only-secret-not-used-anywhere-else
+      PREVIEW_SECRET: ci-preview-secret
+      CRON_SECRET: ci-cron-secret
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      E2E_BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # A throwaway password for the sample accounts, different on every run.
+      - run: echo "SEED_PASSWORD=Ci-$(openssl rand -hex 12)-Aa1" >> "$GITHUB_ENV"
+
+      - run: pnpm seed
+
+      # Test the real thing: a production build, not the dev server.
+      - run: pnpm build
+
+      - name: Start the site
+        run: |
+          pnpm start > server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000/ > /dev/null && exit 0
+            sleep 2
+          done
+          cat server.log
+          exit 1
+
+      - run: pnpm test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+            server.log
+          retention-days: 7

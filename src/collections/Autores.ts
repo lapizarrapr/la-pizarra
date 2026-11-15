@@ -8,6 +8,7 @@ import {
   cualquiera,
   editorOAdmin,
 } from '@/access'
+import { impedirSiTieneArticulos } from '@/hooks/borrado'
 import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { aIniciales, aSlug } from '@/lib/texto'
 
@@ -69,6 +70,7 @@ export const Autores: CollectionConfig = {
   hooks: {
     beforeValidate: [calcularNombrePublico],
     afterChange: [revalidarAlCambiar('autores')],
+    beforeDelete: [impedirSiTieneArticulos('autores', 'firma')],
     afterDelete: [revalidarAlBorrar('autores')],
   },
   fields: [

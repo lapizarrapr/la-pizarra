@@ -21,7 +21,7 @@ const exigirContrasenaFuerte: CollectionBeforeOperationHook = ({ args, operation
       datos.password,
       typeof datos.email === 'string' ? datos.email : undefined,
     )
-    if (resultado !== true) throw new APIError(resultado, 400)
+    if (resultado !== true) throw new APIError(resultado, 400, undefined, true)
   }
   return args
 }

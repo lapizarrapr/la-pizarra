@@ -28,6 +28,7 @@ import {
   type Estado,
   type Status,
 } from '@/hooks/flujoEditorial'
+import { borrarVistasDelArticulo } from '@/hooks/borrado'
 import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { textoDesdeLexical, tiempoDeLectura } from '@/lib/texto'
 
@@ -67,7 +68,7 @@ const aplicarFlujoEditorial: CollectionBeforeChangeHook = async ({
     statusSolicitado: datos._status,
     statusPrevio: previo?._status,
   })
-  if (!resultado.ok) throw new APIError(resultado.motivo, 403)
+  if (!resultado.ok) throw new APIError(resultado.motivo, 403, undefined, true)
 
   datos._status = resultado.status
   datos.estadoEditorial = resultado.estado
@@ -166,6 +167,7 @@ export const Articulos: CollectionConfig = {
   hooks: {
     beforeChange: [aplicarFlujoEditorial],
     afterChange: [retirarSiSeArchiva, revalidarAlCambiar('articulos')],
+    beforeDelete: [borrarVistasDelArticulo],
     afterDelete: [revalidarAlBorrar('articulos')],
   },
   fields: [

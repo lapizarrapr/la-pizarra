@@ -40,7 +40,13 @@ export const leerArticulos: Access = ({ req }) => {
   return PUBLICADO
 }
 
-export const crearArticulos: Access = ({ req }) => esPersonal(usuarioDe(req))
+/** Anyone in the newsroom can start an article; only editors can create one already published. */
+export const crearArticulos: Access = ({ req, data }) => {
+  const usuario = usuarioDe(req)
+  if (esEditorOAdmin(usuario)) return true
+  if (!esPersonal(usuario)) return false
+  return (data as { _status?: string } | undefined)?._status !== 'published'
+}
 
 /**
  * Editors and admins can update anything. Writers can update only their own
@@ -48,10 +54,13 @@ export const crearArticulos: Access = ({ req }) => esPersonal(usuarioDe(req))
  * (`hooks/flujoEditorial.ts`) additionally rejects any attempt by a writer to
  * publish.
  */
-export const actualizarArticulos: Access = ({ req }) => {
+export const actualizarArticulos: Access = ({ req, data }) => {
   const usuario = usuarioDe(req)
   if (esEditorOAdmin(usuario)) return true
   if (esPersonal(usuario)) {
+    // Asked "may this person publish?" (the admin panel asks before drawing
+    // the Publish button; the API asks when someone tries): no.
+    if ((data as { _status?: string } | undefined)?._status === 'published') return false
     return donde({ and: [{ creadoPor: { equals: usuario!.id } }, BORRADOR] })
   }
   return false

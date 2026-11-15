@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { cualquiera, editorOAdmin, personal } from '@/access'
+import { impedirSiTieneArticulos } from '@/hooks/borrado'
 import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { campoSlug } from '@/fields/slug'
 
@@ -22,6 +23,7 @@ export const Categorias: CollectionConfig = {
   },
   hooks: {
     afterChange: [revalidarAlCambiar('taxonomias')],
+    beforeDelete: [impedirSiTieneArticulos('categoria', 'sección')],
     afterDelete: [revalidarAlBorrar('taxonomias')],
   },
   fields: [

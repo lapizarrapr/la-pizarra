@@ -61,6 +61,12 @@ After every phase: lint, typecheck and tests must pass before committing.
 - Audits (phase 6, production build, sample content): axe WCAG 2.2 AA = 0 violations on 12 page types × light/dark × phone/desktop (`tests/e2e/accesibilidad.e2e.spec.ts`); Lighthouse mobile ≈ 95 performance, 100 accessibility / best practices / SEO on home and article. Run e2e against a production build with `E2E_BASE_URL=http://localhost:3100 pnpm test:e2e`.
 - Lighthouse cannot launch Chrome by itself on this Windows machine ("spawn UNKNOWN"): launch Chromium through Playwright with `--remote-debugging-port` and pass `--port` to Lighthouse.
 - Inter (UI labels) is deliberately not preloaded; it kept LCP under 3 s on throttled mobile.
+- Deleting: `src/hooks/borrado.ts`. An article's `vistas` rows are removed with it (the NOT NULL foreign key otherwise makes the delete fail with a 500); sections and authors still used by articles refuse deletion with a Spanish message. When adding a required relationship to another collection, add the matching delete rule.
+- `APIError` messages reach the admin user only when the 4th argument (`isPublic`) is `true`.
+- Admin "Publish" button visibility comes from calling `update` access with `data._status = 'published'`; `actualizarArticulos` answers `false` for writers there.
+- `admin.avatar` is `'default'` (no Gravatar: it leaks a hash of staff emails and the CSP blocks it).
+- Admin document locking: while one person has an article open, others get a "document locked" dialog with "take over".
+- Changes inside `payload.config.ts` or collection hooks may need a dev-server restart to take effect.
 - Delete `.next/` if `tsc` reports errors inside `.next/types` after moving routes.
 
 ## Layout
@@ -86,7 +92,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons — **done**
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email — **done** (email provider still undecided; Turnstile not yet exercised against Cloudflare)
 6. Design polish, dark mode, accessibility and performance audit — **done** (manual screen-reader pass and admin-panel CSP under real editing still to do)
-7. Tests
+7. Tests — **done**: 61 unit, 35 integration, 61 browser (Playwright). `tests/e2e/flujo-editorial.e2e.spec.ts` drives the real admin (writer drafts → editor publishes → portada/section/search → delete); helpers in `tests/helpers/admin.ts`. Browser tests need the sample content and `SEED_PASSWORD`. The CI workflow (lint/unit/integration job + e2e job on a production build) has never run on GitHub yet
 8. Deployment (Vercel + Neon + R2), `DEPLOY.md`, `GUIA-EDITORIAL.md`
 
 Decisions already made with the owner: authors are a separate collection from users; editorial state is a custom `estadoEditorial` field kept in sync with Payload's `_status`; search sits behind a `SearchProvider` interface (Postgres full-text first); scheduled publishing is triggered by a GitHub Actions timer calling `/api/payload-jobs/run` (Vercel's free plan only runs cron daily); email provider is chosen by env var and not decided yet; no public comments in v1.

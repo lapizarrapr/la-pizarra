@@ -37,6 +37,8 @@ const urlDeVistaPrevia = (coleccion: string | undefined, slug: unknown): string 
 export default buildConfig({
   admin: {
     user: Usuarios.slug,
+    // No Gravatar: it would send a hash of every staff email to an outside service.
+    avatar: 'default',
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · La Pizarra' },
     dateFormat: "d 'de' MMMM 'de' yyyy, h:mm aaaa",
