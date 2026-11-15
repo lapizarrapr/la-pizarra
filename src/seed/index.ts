@@ -13,8 +13,8 @@ import config from '@/payload.config'
 import { aSlug } from '@/lib/texto'
 import { validarContrasena } from '@/lib/contrasena'
 
-import { ARTICULOS, CATEGORIAS, ETIQUETAS, PAGINAS, type AutorClave } from './contenido'
-import { documento } from './lexical'
+import { crearMenus, crearPaginas, crearSecciones, IDENTIDAD } from './base'
+import { ARTICULOS, ETIQUETAS, PAGINAS, type AutorClave } from './contenido'
 
 const COLECCIONES = [
   'vistas',
@@ -133,14 +133,7 @@ const sembrar = async (payload: Payload): Promise<void> => {
   }
 
   log('Secciones y etiquetas…')
-  const categorias = new Map<string, number>()
-  for (const [i, [nombre, descripcion]] of CATEGORIAS.entries()) {
-    const doc = await payload.create({
-      collection: 'categorias',
-      data: { nombre, descripcion, orden: (i + 1) * 10 },
-    })
-    categorias.set(nombre, doc.id)
-  }
+  const categorias = await crearSecciones(payload)
   const etiquetas = new Map<string, number>()
   for (const nombre of ETIQUETAS) {
     const doc = await payload.create({ collection: 'etiquetas', data: { nombre } })
@@ -203,32 +196,13 @@ const sembrar = async (payload: Payload): Promise<void> => {
   }
 
   log('Páginas…')
-  for (const p of PAGINAS) {
-    await payload.create({
-      collection: 'paginas',
-      data: {
-        titulo: p.titulo,
-        slug: p.slug,
-        introduccion: p.introduccion,
-        bloques: [
-          { blockType: 'texto', contenido: documento(...p.bloques) },
-          ...('formulario' in p && p.formulario
-            ? [{ blockType: 'formulario' as const, tipo: p.formulario }]
-            : []),
-        ],
-        _status: 'published',
-      },
-    })
-  }
+  await crearPaginas(payload)
 
   log('Ajustes, menús y portada…')
   await payload.updateGlobal({
     slug: 'ajustes',
     data: {
-      nombre: 'La Pizarra',
-      lema: 'Periodismo desde el salón de clases',
-      descripcion:
-        'Noticias, reportajes y opinión sobre la educación pública de Puerto Rico, escritos por maestras, maestros y estudiantes.',
+      ...IDENTIDAD,
       cintillo: {
         activo: true,
         texto: 'Tres escuelas de la montaña comienzan el semestre sin maestros de ciencia',
@@ -237,34 +211,7 @@ const sembrar = async (payload: Payload): Promise<void> => {
     },
   })
 
-  const enlaceSeccion = (nombre: string) => ({
-    etiqueta: nombre,
-    enlace: `/seccion/${aSlug(nombre)}`,
-  })
-  await payload.updateGlobal({
-    slug: 'navegacion',
-    data: {
-      principal: CATEGORIAS.map(([nombre]) => enlaceSeccion(nombre)),
-      pie: [
-        {
-          titulo: 'La Pizarra',
-          enlaces: [
-            { etiqueta: 'Sobre Nosotros', enlace: '/sobre-nosotros' },
-            { etiqueta: 'Política Editorial', enlace: '/politica-editorial' },
-            { etiqueta: 'Privacidad', enlace: '/privacidad' },
-          ],
-        },
-        {
-          titulo: 'Participa',
-          enlaces: [
-            { etiqueta: 'Cómo Colaborar', enlace: '/como-colaborar' },
-            { etiqueta: 'Contacto', enlace: '/contacto' },
-          ],
-        },
-      ],
-      textoLegal: 'La Pizarra. Hecho por maestras, maestros y estudiantes de la escuela pública.',
-    },
-  })
+  await crearMenus(payload)
 
   await payload.updateGlobal({
     slug: 'portada',

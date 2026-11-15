@@ -6,3 +6,5 @@ src/app/(payload)
 playwright-report
 test-results
 media
+src/migrations
+respaldos

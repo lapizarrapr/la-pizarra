@@ -1,0 +1,45 @@
+name: Publicación programada
+
+# Vercel's free plan only runs timers once a day, so this workflow is the
+# clock: it asks the site to publish any article whose scheduled time has
+# arrived. Nothing is built or checked out here; it is a single web request.
+#
+# Needs, in the GitHub repository (Settings → Secrets and variables → Actions):
+#   variable  SITE_URL     e.g. https://lapizarra.example  (no trailing slash)
+#   secret    CRON_SECRET  same value as CRON_SECRET in Vercel
+#
+# GitHub may start scheduled runs several minutes late, and pauses them after
+# 60 days without any activity in the repository (it emails first).
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: publicacion-programada
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  publicar:
+    name: Publicar lo programado
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    # Stays quiet (instead of failing every 10 minutes) until the site exists.
+    if: ${{ vars.SITE_URL != '' }}
+    steps:
+      - name: Pedir al sitio que publique lo pendiente
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Falta el secreto CRON_SECRET en GitHub." >&2
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --max-time 120 \
+            --retry 2 --retry-delay 10 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE_URL/api/payload-jobs/run?limit=25"

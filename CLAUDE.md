@@ -13,7 +13,7 @@ Independent news site for Puerto Rico's public school community. The owner is a 
 
 ## Commands
 
-`pnpm dev` · `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm format` · `pnpm test:unit` · `pnpm test:int` (needs Postgres) · `pnpm test:e2e` · `pnpm db:up` · `pnpm seed` (wipes and refills the LOCAL database with fictional content) · `pnpm generate:types` · `pnpm generate:importmap`
+`pnpm dev` · `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm format` · `pnpm test:unit` · `pnpm test:int` (needs Postgres) · `pnpm test:e2e` · `pnpm db:up` · `pnpm seed` (wipes and refills the LOCAL database with fictional content) · `pnpm generate:types` · `pnpm generate:importmap` · `pnpm migrate:create <name>` · `pnpm respaldo` (production DB backup) · `pnpm build:vercel` (what Vercel runs)
 
 After every phase: lint, typecheck and tests must pass before committing.
 
@@ -38,6 +38,18 @@ After every phase: lint, typecheck and tests must pass before committing.
 - Fields with a default that are `required` are also required in the generated create types; slugs use a `validate` function instead of `required` for that reason.
 - `payload run` exits when the module finishes loading: scripts must use top-level `await`.
 - Changing a collection slug or a `localized` flag in dev makes the schema push prompt interactively; reset the local DB instead (`docker compose down -v && pnpm db:up && pnpm seed`).
+
+## Production and migrations
+
+- Local databases use schema push (`push` is on only when `DATABASE_URL` points at localhost). Hosted databases change **only** through `src/migrations/`. Vercel runs `pnpm build:vercel`: `payload migrate` → `src/seed/inicial.ts` → `next build`, the first two with `NODE_ENV=production`. Without that, `payload run` pushes the schema, writes a `dev` row into `payload_migrations`, and the next `payload migrate` stops at an interactive prompt (found in the deploy rehearsal).
+- After any change to collections, globals or fields: `pnpm migrate:create <name>` and commit the files. Always use that script, never bare `payload migrate:create`: it sets `R2_BUCKET` so the S3 plugin is enabled, which adds the `media._objectkey` column. A migration generated without it would drop that column in production.
+- `src/seed/inicial.ts` creates the nine sections, five pages, menus and site identity only when the database has no sections and no pages. It never deletes. Shared with the dev seed through `src/seed/base.ts`.
+- Scheduled publishing in production: `.github/workflows/publicacion-programada.yml` (every 10 min; needs repo variable `SITE_URL` and secret `CRON_SECRET`; skipped while `SITE_URL` is unset).
+- Backups: `scripts/respaldo.mjs` runs `pg_dump` inside Docker using `RESPALDO_DATABASE_URL` from `.env.respaldo` (git-ignored) and writes `respaldos/`. Dump and restore were tested against the local database.
+- A deploy rehearsal on an empty local database passed (migrate, first content, build, every public route 200, create-first-user screen, jobs endpoint 401 without the secret). Nothing has run on Vercel, Neon, R2, Turnstile or a real email provider yet: `DEPLOY.md` ends with the checklist of what to verify there.
+- `.next/cache` keeps cached lookups (for example section id by slug) for up to an hour **across builds**. After building against a different database (a rehearsal, a restored copy), delete `.next/cache` before the next build, or section pages come up empty and never refresh. Vercel is unaffected as long as the database stays the same.
+- On Windows, stopping a background `pnpm start` can leave the Node process holding its port; check with `netstat -ano` and `taskkill` it.
+- The owner has not chosen public vs private for the GitHub repo. Private needs the timer changed to `*/30` (free Actions minutes). The local git email is the owner's personal address: offer to rewrite it to their GitHub noreply address before the first push.
 
 ## Public site notes
 
@@ -77,11 +89,14 @@ src/app/(payload)/         Admin panel + REST/GraphQL API (template files)
 src/app/(frontend)/        Public site
 src/collections/           Payload collections
 src/globals/ blocks/ fields/ hooks/ access/   Globals, editor blocks, shared fields, workflow, access rules
-src/seed/                  Fictional sample content (`pnpm seed`)
+src/migrations/            Database migrations (applied by `pnpm build:vercel`)
+src/seed/                  Fictional sample content (`pnpm seed`); `inicial.ts` = first production content
+scripts/respaldo.mjs       Production database backup
 src/lib/                   Shared utilities (fechas.ts, later search/, email/, seo/)
 tests/unit|int|e2e/        Vitest unit, Vitest integration (Local API), Playwright
 docker-compose.yml         Local Postgres (+ lapizarra_test database)
-.github/workflows/ci.yml   Lint, format check, typecheck, tests
+.github/workflows/         ci.yml (lint, format check, typecheck, tests) · publicacion-programada.yml (timer)
+vercel.json                Build command for Vercel
 ```
 
 ## Phase plan
@@ -93,6 +108,6 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email — **done** (email provider still undecided; Turnstile not yet exercised against Cloudflare)
 6. Design polish, dark mode, accessibility and performance audit — **done** (manual screen-reader pass and admin-panel CSP under real editing still to do)
 7. Tests — **done**: 61 unit, 35 integration, 61 browser (Playwright). `tests/e2e/flujo-editorial.e2e.spec.ts` drives the real admin (writer drafts → editor publishes → portada/section/search → delete); helpers in `tests/helpers/admin.ts`. Browser tests need the sample content and `SEED_PASSWORD`. The CI workflow (lint/unit/integration job + e2e job on a production build) has never run on GitHub yet
-8. Deployment (Vercel + Neon + R2), `DEPLOY.md`, `GUIA-EDITORIAL.md`
+8. Deployment (Vercel + Neon + R2), `DEPLOY.md`, `GUIA-EDITORIAL.md` — **done** as far as the laptop allows: migrations, first-deploy content, timer workflow, backup script, guides. The owner still has to create the accounts and follow `DEPLOY.md`; screenshots in `GUIA-EDITORIAL.md` are placeholders
 
 Decisions already made with the owner: authors are a separate collection from users; editorial state is a custom `estadoEditorial` field kept in sync with Payload's `_status`; search sits behind a `SearchProvider` interface (Postgres full-text first); scheduled publishing is triggered by a GitHub Actions timer calling `/api/payload-jobs/run` (Vercel's free plan only runs cron daily); email provider is chosen by env var and not decided yet; no public comments in v1.

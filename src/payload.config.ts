@@ -25,6 +25,8 @@ const dirname = path.dirname(filename)
 
 const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const usarR2 = Boolean(process.env.R2_BUCKET)
+const BASE_DE_DATOS = process.env.DATABASE_URL || ''
+const BASE_LOCAL = /@(localhost|127\.0\.0\.1|postgres)[:/]/.test(BASE_DE_DATOS)
 
 /** Address the admin opens to show an unpublished article or page. */
 const urlDeVistaPrevia = (coleccion: string | undefined, slug: unknown): string | null => {
@@ -107,7 +109,11 @@ export default buildConfig({
   db: postgresAdapter({
     // Accent-insensitive search ("educacion" finds "educación").
     extensions: ['unaccent'],
-    pool: { connectionString: process.env.DATABASE_URL || '' },
+    pool: { connectionString: BASE_DE_DATOS },
+    // Development convenience only: the schema follows the code automatically
+    // on a database on this machine. Any hosted database (Neon) is changed
+    // exclusively through the migrations in src/migrations.
+    push: BASE_LOCAL,
   }),
 
   // Scheduled publishing runs as a queued job. On Vercel nothing runs in the

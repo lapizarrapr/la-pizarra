@@ -51,3 +51,7 @@ node_modules/
 
 # local tooling
 /.claude/settings.local.json
+
+# production database backups (pnpm respaldo)
+.env.respaldo
+/respaldos/
