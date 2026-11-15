@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { revalidarAlCambiar } from '@/hooks/revalidar'
+import { miniaturaDeAdmin } from '@/lib/miniatura'
 import { actualizarMedia, campoSoloAdmin, cualquiera, editorOAdmin, personal } from '@/access'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -40,7 +41,7 @@ export const Media: CollectionConfig = {
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'],
     focalPoint: true,
     crop: true,
-    adminThumbnail: 'pequena',
+    adminThumbnail: ({ doc }) => miniaturaDeAdmin(doc, process.env.R2_PUBLIC_URL),
     // Cap the stored original so phone photos don't fill the storage bucket.
     resizeOptions: { width: 2400, withoutEnlargement: true },
     formatOptions: webp,
