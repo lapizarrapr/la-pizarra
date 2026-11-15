@@ -8,6 +8,7 @@ import {
   cualquiera,
   editorOAdmin,
 } from '@/access'
+import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { aIniciales, aSlug } from '@/lib/texto'
 
 type DatosAutor = {
@@ -65,7 +66,11 @@ export const Autores: CollectionConfig = {
     update: actualizarAutores,
     delete: editorOAdmin,
   },
-  hooks: { beforeValidate: [calcularNombrePublico] },
+  hooks: {
+    beforeValidate: [calcularNombrePublico],
+    afterChange: [revalidarAlCambiar('autores')],
+    afterDelete: [revalidarAlBorrar('autores')],
+  },
   fields: [
     {
       name: 'nombrePublico',

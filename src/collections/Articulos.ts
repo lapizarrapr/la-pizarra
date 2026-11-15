@@ -28,6 +28,7 @@ import {
   type Estado,
   type Status,
 } from '@/hooks/flujoEditorial'
+import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { textoDesdeLexical, tiempoDeLectura } from '@/lib/texto'
 
 export const TIPOS_DE_ARTICULO = [
@@ -164,7 +165,8 @@ export const Articulos: CollectionConfig = {
   },
   hooks: {
     beforeChange: [aplicarFlujoEditorial],
-    afterChange: [retirarSiSeArchiva],
+    afterChange: [retirarSiSeArchiva, revalidarAlCambiar('articulos')],
+    afterDelete: [revalidarAlBorrar('articulos')],
   },
   fields: [
     {

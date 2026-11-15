@@ -2,6 +2,7 @@ import path from 'path'
 import type { CollectionConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { revalidarAlCambiar } from '@/hooks/revalidar'
 import { actualizarMedia, campoSoloAdmin, cualquiera, editorOAdmin, personal } from '@/access'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -24,6 +25,7 @@ export const Media: CollectionConfig = {
     delete: editorOAdmin,
   },
   hooks: {
+    afterChange: [revalidarAlCambiar('articulos')],
     beforeChange: [
       ({ data, operation, req }) => {
         if (operation === 'create' && req.user) data.subidoPor = req.user.id

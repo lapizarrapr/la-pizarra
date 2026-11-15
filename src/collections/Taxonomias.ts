@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { cualquiera, editorOAdmin, personal } from '@/access'
+import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { campoSlug } from '@/fields/slug'
 
 export const Categorias: CollectionConfig = {
@@ -18,6 +19,10 @@ export const Categorias: CollectionConfig = {
     create: editorOAdmin,
     update: editorOAdmin,
     delete: editorOAdmin,
+  },
+  hooks: {
+    afterChange: [revalidarAlCambiar('taxonomias')],
+    afterDelete: [revalidarAlBorrar('taxonomias')],
   },
   fields: [
     { name: 'nombre', type: 'text', label: 'Nombre', required: true, localized: true },
@@ -59,6 +64,10 @@ export const Etiquetas: CollectionConfig = {
     create: personal,
     update: editorOAdmin,
     delete: editorOAdmin,
+  },
+  hooks: {
+    afterChange: [revalidarAlCambiar('taxonomias')],
+    afterDelete: [revalidarAlBorrar('taxonomias')],
   },
   fields: [
     { name: 'nombre', type: 'text', label: 'Nombre', required: true, localized: true },

@@ -1,6 +1,7 @@
 import type { Field, GlobalConfig } from 'payload'
 
 import { cualquiera, editorOAdmin } from '@/access'
+import { revalidarGlobal } from '@/hooks/revalidar'
 
 const enlaceValido = (valor: unknown): string | true =>
   typeof valor === 'string' && /^(\/(?!\/)|https:\/\/|mailto:)\S*$/.test(valor.trim())
@@ -35,6 +36,7 @@ export const Ajustes: GlobalConfig = {
   label: 'Ajustes del sitio',
   admin: { group: 'Sitio', description: 'Nombre, lema, logo, redes y cintillo de última hora.' },
   access: { read: cualquiera, update: editorOAdmin },
+  hooks: { afterChange: [revalidarGlobal('globales')] },
   fields: [
     {
       type: 'tabs',
@@ -143,6 +145,7 @@ export const Navegacion: GlobalConfig = {
   label: 'Menús',
   admin: { group: 'Sitio', description: 'Menú principal y pie de página.' },
   access: { read: cualquiera, update: editorOAdmin },
+  hooks: { afterChange: [revalidarGlobal('globales')] },
   fields: [
     {
       name: 'principal',
@@ -190,6 +193,7 @@ export const Portada: GlobalConfig = {
       'Decide qué aparece en la página principal. Lo que dejes vacío se llena solo con los artículos destacados y más recientes.',
   },
   access: { read: cualquiera, update: editorOAdmin },
+  hooks: { afterChange: [revalidarGlobal('globales')] },
   fields: [
     {
       name: 'principal',

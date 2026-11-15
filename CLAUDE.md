@@ -39,6 +39,16 @@ After every phase: lint, typecheck and tests must pass before committing.
 - `payload run` exits when the module finishes loading: scripts must use top-level `await`.
 - Changing a collection slug or a `localized` flag in dev makes the schema push prompt interactively; reset the local DB instead (`docker compose down -v && pnpm db:up && pnpm seed`).
 
+## Public site notes
+
+- Routes live in `src/app/(frontend)/[locale]/`; `src/proxy.ts` serves Spanish without a prefix and redirects `/es/...` to the bare path. Build URLs only with `src/lib/rutas.ts`.
+- All reads go through `src/lib/datos.ts` (`unstable_cache` + tags, `overrideAccess: false`). `src/hooks/revalidar.ts` expires tags from Payload hooks; verified in production mode for publish, edit and unpublish.
+- Fixed strings live in `src/lib/i18n/es.ts`. Design tokens (light/dark) are CSS variables in `globals.css`, exposed to Tailwind as `fondo`, `tinta`, `gris`, `linea`, `acento`, `pizarra`, `tiza`, `alerta`, `superficie`.
+- Images use `components/ImagenMedia.tsx` (plain `<img>` + srcset from Payload sizes), not `next/image`.
+- Rich text renders through `components/TextoRico.tsx` (React elements, never raw HTML).
+- Draft preview: `/vista-previa?ruta=…&secreto=…` enables draft mode only with the secret AND a logged-in newsroom user.
+- Delete `.next/` if `tsc` reports errors inside `.next/types` after moving routes.
+
 ## Layout
 
 ```
@@ -58,7 +68,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 
 1. Setup — **done**
 2. Data model, roles/access control, editorial workflow, seed — **done** (live preview config moves to phase 3, with the article page)
-3. Public site (owner chooses between two visual directions first: A "Edición impresa", B "Pizarra")
+3. Public site — **done**. Owner chose direction **B "Pizarra"** (green masthead, chalk-yellow accent; Fraunces / Newsreader / Inter). Share buttons, related, prev/next, most-read and search come in phase 4; form blocks render a placeholder until phase 5
 4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email
 6. Design polish, dark mode, accessibility and performance audit

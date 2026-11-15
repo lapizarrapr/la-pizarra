@@ -1,6 +1,7 @@
 import type { Block, CollectionConfig } from 'payload'
 
 import { editorOAdmin, publicadoOPersonal } from '@/access'
+import { revalidarAlBorrar, revalidarAlCambiar } from '@/hooks/revalidar'
 import { campoSlug } from '@/fields/slug'
 
 const TextoEnriquecido: Block = {
@@ -110,6 +111,10 @@ export const Paginas: CollectionConfig = {
     update: editorOAdmin,
     delete: editorOAdmin,
     readVersions: editorOAdmin,
+  },
+  hooks: {
+    afterChange: [revalidarAlCambiar('paginas')],
+    afterDelete: [revalidarAlBorrar('paginas')],
   },
   versions: { maxPerDoc: 25, drafts: { autosave: { interval: 2000, showSaveDraftButton: true } } },
   fields: [

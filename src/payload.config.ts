@@ -25,12 +25,29 @@ const dirname = path.dirname(filename)
 const SITIO = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 const usarR2 = Boolean(process.env.R2_BUCKET)
 
+/** Address the admin opens to show an unpublished article or page. */
+const urlDeVistaPrevia = (coleccion: string | undefined, slug: unknown): string | null => {
+  if (typeof slug !== 'string' || !slug) return null
+  const ruta = coleccion === 'articulos' ? `/articulo/${slug}` : `/${slug}`
+  const parametros = new URLSearchParams({ ruta, secreto: process.env.PREVIEW_SECRET || '' })
+  return `/vista-previa?${parametros}`
+}
+
 export default buildConfig({
   admin: {
     user: Usuarios.slug,
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · La Pizarra' },
     dateFormat: "d 'de' MMMM 'de' yyyy, h:mm aaaa",
+    livePreview: {
+      collections: ['articulos', 'paginas'],
+      url: ({ data, collectionConfig }) => urlDeVistaPrevia(collectionConfig?.slug, data?.slug),
+      breakpoints: [
+        { name: 'telefono', label: 'Teléfono', width: 390, height: 780 },
+        { name: 'tableta', label: 'Tableta', width: 820, height: 1100 },
+        { name: 'escritorio', label: 'Escritorio', width: 1280, height: 800 },
+      ],
+    },
     timezones: {
       defaultTimezone: ZONA_HORARIA,
       supportedTimezones: [{ label: 'Puerto Rico (AST)', value: ZONA_HORARIA }],
