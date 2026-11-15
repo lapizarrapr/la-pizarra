@@ -23,6 +23,12 @@ export type EstadoDeFormulario = {
   valores?: Partial<Record<(typeof CAMPOS_DEVUELTOS)[number], string>>
 }
 
+/**
+ * Attempts allowed per form, per hour, from one internet connection. A whole
+ * school usually shares a single connection, so this cannot be very low.
+ */
+const ENVIOS_POR_HORA = 20
+
 const CAMPOS_DEVUELTOS = ['nombre', 'email', 'asunto', 'mensaje', 'anonimo'] as const
 
 const conValores = (resultado: EstadoDeFormulario, formData: FormData): EstadoDeFormulario => {
@@ -76,7 +82,7 @@ async function procesarMensaje(formData: FormData): Promise<EstadoDeFormulario> 
   if (pareceRobot(entrada)) return exito
 
   try {
-    const bloqueo = await comprobar('mensaje', entrada, 5)
+    const bloqueo = await comprobar('mensaje', entrada, ENVIOS_POR_HORA)
     if (bloqueo) return bloqueo
 
     const validacion = validarMensaje(entrada)
@@ -128,7 +134,7 @@ async function procesarSuscripcion(formData: FormData): Promise<EstadoDeFormular
   if (pareceRobot(entrada)) return exito
 
   try {
-    const bloqueo = await comprobar('boletin', entrada, 5)
+    const bloqueo = await comprobar('boletin', entrada, ENVIOS_POR_HORA)
     if (bloqueo) return bloqueo
 
     const email = normalizarEmail(entrada.email)
