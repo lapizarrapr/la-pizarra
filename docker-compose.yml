@@ -1,0 +1,24 @@
+# Base de datos local para desarrollo. Uso: `docker compose up -d`
+# Local development database only. Production uses Neon (see DEPLOY.md).
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: lapizarra-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lapizarra
+      POSTGRES_PASSWORD: lapizarra
+      POSTGRES_DB: lapizarra
+    ports:
+      - '5432:5432'
+    volumes:
+      - lapizarra_pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lapizarra -d lapizarra']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lapizarra_pgdata:

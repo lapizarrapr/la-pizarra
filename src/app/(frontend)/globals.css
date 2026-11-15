@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+
+/* Provisional tokens. The final palette and typography are chosen in phase 3. */
+@theme {
+  --color-pizarra: #1f3d36;
+  --color-tiza: #f7f5ef;
+  --color-papel: #f4efe3;
+  --color-tinta: #1b1b18;
+}
