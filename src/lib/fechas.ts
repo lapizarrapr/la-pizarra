@@ -50,3 +50,22 @@ export const diaEnPuertoRico = (valor: EntradaFecha): string => formatoPartes.fo
 
 /** Full ISO timestamp for `<time dateTime>` and structured data. */
 export const aISO = (valor: EntradaFecha): string => aFecha(valor).toISOString()
+
+/**
+ * First instant of a Puerto Rico calendar month and of the next one, as UTC
+ * ISO strings. Puerto Rico is UTC-4 all year (no daylight saving time).
+ */
+export const limitesDelMes = (anio: number, mes: number): { inicio: string; fin: string } => ({
+  inicio: new Date(Date.UTC(anio, mes - 1, 1, 4)).toISOString(),
+  fin: new Date(Date.UTC(anio, mes, 1, 4)).toISOString(),
+})
+
+const formatoMes = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: 'UTC',
+  month: 'long',
+  year: 'numeric',
+})
+
+/** (2026, 11) → 'noviembre de 2026' */
+export const nombreDelMes = (anio: number, mes: number): string =>
+  formatoMes.format(new Date(Date.UTC(anio, mes - 1, 15)))

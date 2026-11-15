@@ -18,6 +18,16 @@ export const rutas = (locale: string = LOCALE_PREDETERMINADO) => {
     etiqueta: (slug: string, pagina?: number) => conPagina(`${p}/etiqueta/${slug}`, pagina),
     autor: (slug: string, pagina?: number) => conPagina(`${p}/autor/${slug}`, pagina),
     pagina: (slug: string) => `${p}/${slug}`,
+    buscar: (q?: string, pagina = 1) => {
+      const parametros = new URLSearchParams()
+      if (q) parametros.set('q', q)
+      if (pagina > 1) parametros.set('pagina', String(pagina))
+      const consulta = parametros.toString()
+      return `${p}/buscar${consulta ? `?${consulta}` : ''}`
+    },
+    archivo: () => `${p}/archivo`,
+    mes: (anio: number, mes: number, pagina?: number) =>
+      conPagina(`${p}/archivo/${anio}/${String(mes).padStart(2, '0')}`, pagina),
     /** Editor-entered links: internal paths get the locale prefix, others pass through. */
     libre: (enlace: string) => (enlace.startsWith('/') ? `${p}${enlace}` : enlace),
   }

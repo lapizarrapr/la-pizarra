@@ -3,13 +3,25 @@ import { draftMode } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { Antetitulo, Fecha, Firmas } from '@/components/articulos'
+import { Antetitulo, Fecha, Firmas, TarjetaArticulo, TituloDeBloque } from '@/components/articulos'
+import { ContarVista } from '@/components/cliente/ContarVista'
 import { RefrescarAlGuardar } from '@/components/cliente/RefrescarAlGuardar'
+import { Compartir } from '@/components/Compartir'
 import { ImagenMedia } from '@/components/ImagenMedia'
 import { TextoRico } from '@/components/TextoRico'
-import { articuloPorSlug, borradorPorSlug, poblado, poblados, slugsDeArticulos } from '@/lib/datos'
-import { diccionario, esLocale, LOCALES } from '@/lib/i18n'
+import {
+  articuloPorSlug,
+  borradorPorSlug,
+  obtenerAjustes,
+  poblado,
+  poblados,
+  relacionados,
+  slugsDeArticulos,
+  vecinos,
+} from '@/lib/datos'
+import { diccionario, esLocale, LOCALES, type Locale } from '@/lib/i18n'
 import { absoluta, rutas, SITIO } from '@/lib/rutas'
+import { imagenSocial, jsonLdArticulo, serializarJsonLd } from '@/lib/seo'
 import type { Articulo, Autore, Etiqueta, Media } from '@/payload-types'
 
 type Props = { params: Promise<{ locale: string; slug: string }> }
@@ -33,8 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params
   const { articulo, borrador } = await cargar(locale, slug)
   if (!articulo) return {}
-  const imagen = poblado<Media>(articulo.meta?.image) ?? poblado<Media>(articulo.imagenDestacada)
-  const og = imagen?.sizes?.og?.url ?? imagen?.url
+  const og = imagenSocial(articulo)
   const descripcion = articulo.meta?.description ?? articulo.subtitulo ?? undefined
   return {
     title: articulo.meta?.title?.replace(/\s*\|\s*La Pizarra$/, '') ?? articulo.titulo,
@@ -48,7 +59,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: absoluta(rutas(locale).articulo(slug)),
       publishedTime: articulo.fechaPublicacion ?? undefined,
       modifiedTime: articulo.fechaActualizacion ?? undefined,
-      images: og ? [{ url: og.startsWith('http') ? og : `${SITIO}${og}` }] : undefined,
+      images: [{ url: og, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: articulo.titulo,
+      description: descripcion,
+      images: [og],
     },
   }
 }
@@ -68,6 +85,15 @@ export default async function PaginaArticulo({ params }: Props) {
     .join(' · ')
   const actualizado =
     articulo.fechaActualizacion && articulo.fechaActualizacion !== articulo.fechaPublicacion
+  const url = absoluta(r.articulo(slug))
+
+  const [ajustes, similares, alrededor] = await Promise.all([
+    obtenerAjustes(locale as Locale),
+    relacionados(articulo, locale as Locale),
+    articulo.fechaPublicacion && articulo._status === 'published'
+      ? vecinos(articulo.fechaPublicacion, articulo.id, locale as Locale)
+      : { anterior: null, siguiente: null },
+  ])
 
   return (
     <article className="pt-8">
@@ -167,8 +193,69 @@ export default async function PaginaArticulo({ params }: Props) {
               </ul>
             </nav>
           )}
+
+          {!borrador && <Compartir url={url} titulo={articulo.titulo} t={t} />}
         </div>
       </div>
+
+      {(alrededor.anterior || alrededor.siguiente) && (
+        <nav
+          aria-label={`${t.articuloAnterior} / ${t.articuloSiguiente}`}
+          className="contenedor mt-12"
+        >
+          <div className="border-linea mx-auto grid max-w-[42.5rem] gap-6 border-y py-5 sm:grid-cols-2">
+            {alrededor.anterior?.slug ? (
+              <Link
+                href={r.articulo(alrededor.anterior.slug)}
+                rel="prev"
+                className="group flex flex-col gap-1"
+              >
+                <span className="meta">← {t.articuloAnterior}</span>
+                <span className="font-display text-lg leading-snug font-bold group-hover:underline">
+                  {alrededor.anterior.titulo}
+                </span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {alrededor.siguiente?.slug && (
+              <Link
+                href={r.articulo(alrededor.siguiente.slug)}
+                rel="next"
+                className="group flex flex-col gap-1 sm:text-right"
+              >
+                <span className="meta">{t.articuloSiguiente} →</span>
+                <span className="font-display text-lg leading-snug font-bold group-hover:underline">
+                  {alrededor.siguiente.titulo}
+                </span>
+              </Link>
+            )}
+          </div>
+        </nav>
+      )}
+
+      {similares.length > 0 && (
+        <aside className="contenedor mt-12">
+          <TituloDeBloque>{t.relacionadas}</TituloDeBloque>
+          <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {similares.map((otro) => (
+              <TarjetaArticulo key={otro.id} articulo={otro} locale={locale} t={t} />
+            ))}
+          </div>
+        </aside>
+      )}
+
+      {!borrador && (
+        <>
+          <ContarVista slug={slug} />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: serializarJsonLd(jsonLdArticulo(articulo, ajustes, locale)),
+            }}
+          />
+        </>
+      )}
     </article>
   )
 }

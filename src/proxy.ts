@@ -33,6 +33,6 @@ export const config = {
   matcher: [
     // Everything except the admin, APIs, Next internals, uploaded media, the
     // preview endpoint, feeds/metadata files, and anything with a file extension.
-    '/((?!admin|api|_next|media|vista-previa|feed\\.xml|sitemap\\.xml|robots\\.txt|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)',
+    '/((?!admin|api|_next|media|vista-previa|og/|feed\\.xml|sitemap\\.xml|robots\\.txt|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)',
   ],
 }

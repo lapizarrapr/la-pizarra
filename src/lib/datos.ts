@@ -13,6 +13,8 @@ import { getPayload, type Where } from 'payload'
 
 import type { Articulo, Autore, Categoria, Etiqueta, Pagina } from '@/payload-types'
 
+import { db } from './db'
+import { diaEnPuertoRico, limitesDelMes, ZONA_HORARIA } from './fechas'
 import { LOCALE_PREDETERMINADO, type Locale } from './i18n'
 
 export const ETIQUETAS_CACHE = {
@@ -254,3 +256,120 @@ export const slugsDe = async (
   })
   return docs.map((d) => d.slug).filter((s): s is string => Boolean(s))
 }
+
+// ── Relacionados, anterior/siguiente, más leídas, archivo ────────────────────
+export const relacionados = async (
+  articulo: Pick<Articulo, 'id' | 'categoria'>,
+  locale?: Locale,
+): Promise<ArticuloLista[]> => {
+  const categoria =
+    typeof articulo.categoria === 'object' ? articulo.categoria?.id : articulo.categoria
+  if (!categoria) return []
+  return (await listarArticulos({ categoria, excluir: [articulo.id], limite: 3 }, locale)).articulos
+}
+
+/** The articles published just before and just after this one. */
+export const vecinos = enCache(
+  async (fechaPublicacion: string, id: number, locale: Locale = LOCALE_PREDETERMINADO) => {
+    const payload = await cms()
+    const uno = async (where: Where, sort: string) =>
+      ((
+        await payload.find({
+          collection: 'articulos',
+          where: { and: [where, { id: { not_equals: id } }] },
+          sort,
+          limit: 1,
+          depth: 0,
+          select: { titulo: true, slug: true },
+          locale,
+          overrideAccess: false,
+        })
+      ).docs[0] as Pick<Articulo, 'id' | 'titulo' | 'slug'> | undefined) ?? null
+
+    const [anterior, siguiente] = await Promise.all([
+      uno({ fechaPublicacion: { less_than: fechaPublicacion } }, '-fechaPublicacion'),
+      uno({ fechaPublicacion: { greater_than: fechaPublicacion } }, 'fechaPublicacion'),
+    ])
+    return { anterior, siguiente }
+  },
+  'vecinos',
+  [ETIQUETAS_CACHE.articulos],
+)
+
+/** Ids of the most viewed published articles over the last 7 days. */
+const idsMasLeidos = unstable_cache(
+  async (limite: number): Promise<number[]> => {
+    const desde = diaEnPuertoRico(Date.now() - 6 * 86_400_000)
+    const { rows } = await (
+      await db()
+    ).query<{ id: number }>(
+      `SELECT v.articulo_id AS id
+         FROM vistas v JOIN articulos a ON a.id = v.articulo_id
+        WHERE v.dia >= $1 AND a._status = 'published'
+        GROUP BY v.articulo_id
+        ORDER BY sum(v.conteo) DESC, max(a.fecha_publicacion) DESC
+        LIMIT $2`,
+      [desde, limite],
+    )
+    return rows.map((fila) => fila.id)
+  },
+  ['mas-leidos'],
+  // View counts change constantly; a ranking refreshed every 10 minutes is plenty.
+  { tags: [ETIQUETAS_CACHE.articulos], revalidate: 600 },
+)
+
+export const masLeidos = async (limite = 5, locale?: Locale): Promise<ArticuloLista[]> =>
+  articulosEnOrden(await idsMasLeidos(limite), locale)
+
+export type MesDeArchivo = { anio: number; mes: number; total: number }
+
+/** Months that have published articles, newest first (Puerto Rico calendar). */
+export const mesesDeArchivo = enCache(
+  async (): Promise<MesDeArchivo[]> => {
+    const { rows } = await (
+      await db()
+    ).query<{ anio: number; mes: number; total: string }>(
+      `SELECT extract(year FROM f)::int AS anio, extract(month FROM f)::int AS mes, count(*) AS total
+         FROM (SELECT fecha_publicacion AT TIME ZONE $1 AS f
+                 FROM articulos
+                WHERE _status = 'published' AND fecha_publicacion IS NOT NULL) t
+        GROUP BY 1, 2
+        ORDER BY 1 DESC, 2 DESC`,
+      [ZONA_HORARIA],
+    )
+    return rows.map((fila) => ({ anio: fila.anio, mes: fila.mes, total: Number(fila.total) }))
+  },
+  'meses-de-archivo',
+  [ETIQUETAS_CACHE.articulos],
+)
+
+export const articulosDelMes = enCache(
+  async (anio: number, mes: number, pagina: number = 1, locale: Locale = LOCALE_PREDETERMINADO) => {
+    const { inicio, fin } = limitesDelMes(anio, mes)
+    const resultado = await (
+      await cms()
+    ).find({
+      collection: 'articulos',
+      where: {
+        and: [
+          { fechaPublicacion: { greater_than_equal: inicio } },
+          { fechaPublicacion: { less_than: fin } },
+        ],
+      },
+      sort: '-fechaPublicacion',
+      limit: POR_PAGINA,
+      page: pagina,
+      depth: 1,
+      select: CAMPOS_LISTA,
+      locale,
+      overrideAccess: false,
+    })
+    return {
+      articulos: resultado.docs as ArticuloLista[],
+      total: resultado.totalDocs,
+      paginas: resultado.totalPages,
+    }
+  },
+  'articulos-del-mes',
+  [ETIQUETAS_CACHE.articulos, ETIQUETAS_CACHE.taxonomias, ETIQUETAS_CACHE.autores],
+)

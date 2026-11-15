@@ -6,11 +6,14 @@ import {
   articulosEnOrden,
   listarArticulos,
   listarCategorias,
+  masLeidos,
+  obtenerAjustes,
   obtenerPortada,
   type ArticuloLista,
 } from '@/lib/datos'
 import { diccionario, esLocale } from '@/lib/i18n'
 import { rutas } from '@/lib/rutas'
+import { jsonLdSitio, serializarJsonLd } from '@/lib/seo'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -57,7 +60,7 @@ export default async function Portada({ params }: Props) {
   const opinionSlug = categorias.find((c) => c.slug === 'opinion')
   const vocesSlug = categorias.find((c) => c.slug === 'voces-estudiantiles')
 
-  const [recientes, opinion, voces] = await Promise.all([
+  const [recientes, opinion, voces, leidas, ajustes] = await Promise.all([
     listarArticulos({ limite: 14 }, locale),
     portada.mostrarOpinion !== false
       ? listarArticulos({ tipos: ['opinion'], limite: 3 }, locale)
@@ -65,6 +68,8 @@ export default async function Portada({ params }: Props) {
     portada.mostrarVocesEstudiantiles !== false && vocesSlug
       ? listarArticulos({ categoria: vocesSlug.id, limite: 2 }, locale)
       : null,
+    portada.mostrarMasLeidas !== false ? masLeidos(5, locale) : [],
+    obtenerAjustes(locale),
   ])
 
   if (!principal) [principal] = tomar(recientes.articulos, 1)
@@ -98,7 +103,11 @@ export default async function Portada({ params }: Props) {
 
   return (
     <div className="flex flex-col gap-12 pt-6">
-      <h1 className="sr-only">La Pizarra</h1>
+      <h1 className="sr-only">{ajustes.nombre}</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(jsonLdSitio(ajustes, locale)) }}
+      />
 
       <section className="contenedor grid gap-8 lg:grid-cols-[1.9fr_1fr]" aria-label={t.destacadas}>
         <TarjetaArticulo
@@ -179,9 +188,9 @@ export default async function Portada({ params }: Props) {
       ) : null}
 
       {loUltimo.length ? (
-        <section className="contenedor">
-          <TituloDeBloque>{t.loUltimo}</TituloDeBloque>
-          <div className="grid gap-x-10 lg:grid-cols-2">
+        <div className="contenedor grid gap-x-12 gap-y-12 lg:grid-cols-[2fr_1fr]">
+          <section>
+            <TituloDeBloque>{t.loUltimo}</TituloDeBloque>
             {loUltimo.map((articulo) => (
               <TarjetaArticulo
                 key={articulo.id}
@@ -191,8 +200,30 @@ export default async function Portada({ params }: Props) {
                 variante="fila"
               />
             ))}
-          </div>
-        </section>
+          </section>
+          {leidas.length > 0 && (
+            <section>
+              <TituloDeBloque>{t.masLeidas}</TituloDeBloque>
+              <ol className="flex flex-col gap-4">
+                {leidas.map((articulo, i) => (
+                  <li key={articulo.id} className="grid grid-cols-[2.25rem_1fr] items-start gap-2">
+                    <span
+                      className="font-display text-acento text-3xl leading-none font-bold tabular-nums"
+                      aria-hidden="true"
+                    >
+                      {i + 1}
+                    </span>
+                    <h3 className="font-texto text-[1.0625rem] leading-snug font-semibold">
+                      <Link href={r.articulo(articulo.slug ?? '')} className="enlace-titular">
+                        {articulo.titulo}
+                      </Link>
+                    </h3>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+        </div>
       ) : null}
 
       {filas.map(

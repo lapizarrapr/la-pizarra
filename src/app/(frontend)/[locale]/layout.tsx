@@ -34,6 +34,16 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
     title: { default: ajustes.nombre, template: `%s | ${ajustes.nombre}` },
     description: ajustes.descripcion ?? undefined,
     applicationName: ajustes.nombre,
+    alternates: {
+      types: { 'application/rss+xml': [{ url: '/feed.xml', title: ajustes.nombre }] },
+    },
+    openGraph: {
+      siteName: ajustes.nombre,
+      locale: 'es_PR',
+      type: 'website',
+      images: [{ url: '/og/sitio', width: 1200, height: 630 }],
+    },
+    twitter: { card: 'summary_large_image' },
   }
 }
 

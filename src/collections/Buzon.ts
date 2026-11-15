@@ -7,6 +7,9 @@
 import type { CollectionConfig } from 'payload'
 
 import { editorOAdmin, nadie, soloAdmin } from '@/access'
+import { diaEnPuertoRico } from '@/lib/fechas'
+
+const ROBOTS = /bot|crawl|spider|preview|facebookexternalhit|whatsapp|headless|lighthouse/i
 
 export const Mensajes: CollectionConfig = {
   slug: 'mensajes',
@@ -131,6 +134,41 @@ export const Vistas: CollectionConfig = {
   admin: { hidden: true },
   access: { read: editorOAdmin, create: nadie, update: nadie, delete: soloAdmin },
   indexes: [{ fields: ['articulo', 'dia'], unique: true }],
+  endpoints: [
+    {
+      // POST /api/vistas/registrar  { "slug": "…" }
+      // Adds one view to today's counter for a published article. Stores no
+      // IP address, cookie or anything else about the reader.
+      path: '/registrar',
+      method: 'post',
+      handler: async (req) => {
+        const vacio = new Response(null, { status: 204 })
+        // Only count views coming from our own pages, and skip crawlers and
+        // link-preview fetchers (WhatsApp, Facebook, …).
+        if (req.headers.get('sec-fetch-site') !== 'same-origin') return vacio
+        if (ROBOTS.test(req.headers.get('user-agent') ?? '')) return vacio
+
+        let slug: unknown
+        try {
+          slug = ((await req.json?.()) as { slug?: unknown } | undefined)?.slug
+        } catch {
+          return vacio
+        }
+        if (typeof slug !== 'string' || !/^[a-z0-9-]{1,120}$/.test(slug)) return vacio
+
+        const { pool } = req.payload.db as unknown as {
+          pool: { query: (texto: string, valores: unknown[]) => Promise<unknown> }
+        }
+        await pool.query(
+          `INSERT INTO vistas (articulo_id, dia, conteo, updated_at, created_at)
+           SELECT id, $2, 1, now(), now() FROM articulos WHERE slug = $1 AND _status = 'published'
+           ON CONFLICT (articulo_id, dia) DO UPDATE SET conteo = vistas.conteo + 1, updated_at = now()`,
+          [slug, diaEnPuertoRico(Date.now())],
+        )
+        return vacio
+      },
+    },
+  ],
   fields: [
     {
       name: 'articulo',

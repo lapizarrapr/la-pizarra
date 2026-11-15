@@ -47,6 +47,11 @@ After every phase: lint, typecheck and tests must pass before committing.
 - Images use `components/ImagenMedia.tsx` (plain `<img>` + srcset from Payload sizes), not `next/image`.
 - Rich text renders through `components/TextoRico.tsx` (React elements, never raw HTML).
 - Draft preview: `/vista-previa?ruta=…&secreto=…` enables draft mode only with the secret AND a logged-in newsroom user.
+- Search: `src/lib/search/` (`ProveedorDeBusqueda` interface; Postgres full-text with `unaccent`, computed per query, no index yet). Raw SQL goes through `src/lib/db.ts` with bound parameters only.
+- "Más leídas": `POST /api/vistas/registrar` (endpoint on the `vistas` collection) counts same-origin, non-bot views per article per day; ranking is cached 10 minutes.
+- Feeds: `/feed.xml` and `/seccion/[slug]/feed.xml`. Also `/sitemap.xml`, `/robots.txt`, `/archivo`, `/archivo/AAAA/MM`, `/buscar?q=`.
+- Social cards: the article photo's `og` size, or a generated card at `/og/articulo/[slug]` (`/og/sitio` for everything else). JSON-LD lives in `src/lib/seo.ts`.
+- Scheduled publishing verified end to end: queue → `GET /api/payload-jobs/run` with `Authorization: Bearer $CRON_SECRET` → article live.
 - Delete `.next/` if `tsc` reports errors inside `.next/types` after moving routes.
 
 ## Layout
@@ -69,7 +74,7 @@ docker-compose.yml         Local Postgres (+ lapizarra_test database)
 1. Setup — **done**
 2. Data model, roles/access control, editorial workflow, seed — **done** (live preview config moves to phase 3, with the article page)
 3. Public site — **done**. Owner chose direction **B "Pizarra"** (green masthead, chalk-yellow accent; Fraunces / Newsreader / Inter). Share buttons, related, prev/next, most-read and search come in phase 4; form blocks render a placeholder until phase 5
-4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons
+4. Search, RSS, sitemap, SEO/structured data, OG images, share buttons — **done**
 5. Forms (contact/submissions, newsletter), Turnstile + honeypot, email
 6. Design polish, dark mode, accessibility and performance audit
 7. Tests

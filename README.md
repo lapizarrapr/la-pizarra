@@ -4,7 +4,7 @@ Sitio de noticias independiente de la comunidad escolar pública de Puerto Rico.
 
 Independent news site for Puerto Rico's public school community, built with Next.js (App Router) and Payload CMS in a single app. The admin panel lives at `/admin`.
 
-> Status: phase 3 of 8 done (public site: portada, artículo, secciones, etiquetas, autores, páginas). See `CLAUDE.md` for architecture and the phase plan.
+> Status: phase 4 of 8 done (search, archive, RSS, sitemap, structured data, social cards, sharing, most-read). See `CLAUDE.md` for architecture and the phase plan.
 
 ## Requirements
 

@@ -99,6 +99,8 @@ export default buildConfig({
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
 
   db: postgresAdapter({
+    // Accent-insensitive search ("educacion" finds "educación").
+    extensions: ['unaccent'],
     pool: { connectionString: process.env.DATABASE_URL || '' },
   }),
 

@@ -42,7 +42,28 @@ export function Cabecera({
             </Link>
             {ajustes.lema && <p className="text-[0.95rem] italic opacity-85">{ajustes.lema}</p>}
           </div>
-          <BotonTema etiquetaClaro={t.temaClaro} etiquetaOscuro={t.temaOscuro} />
+          <div className="flex items-center gap-2">
+            <Link
+              href={r.buscar()}
+              aria-label={t.buscar}
+              title={t.buscar}
+              className="grid size-9 place-items-center rounded-full border border-current/30 hover:bg-white/10"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="size-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4.5 4.5" />
+              </svg>
+            </Link>
+            <BotonTema etiquetaClaro={t.temaClaro} etiquetaOscuro={t.temaOscuro} />
+          </div>
         </div>
         {/* Date computed at render; pages re-render at least hourly (see lib/datos.ts). */}
         <p className="font-ui pb-1 text-xs capitalize opacity-80">
@@ -143,11 +164,26 @@ export function Pie({
           </nav>
         ))}
       </div>
-      {navegacion.textoLegal && (
-        <p className="contenedor border-linea text-gris border-t py-5 text-xs">
-          {navegacion.textoLegal}
-        </p>
-      )}
+      <div className="contenedor border-linea text-gris flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t py-5 text-xs">
+        {navegacion.textoLegal && <p>{navegacion.textoLegal}</p>}
+        <ul className="flex gap-4 font-semibold">
+          <li>
+            <Link href={r.buscar()} className="hover:underline">
+              {t.buscar}
+            </Link>
+          </li>
+          <li>
+            <Link href={r.archivo()} className="hover:underline">
+              {t.archivo}
+            </Link>
+          </li>
+          <li>
+            <a href="/feed.xml" className="hover:underline">
+              {t.rss}
+            </a>
+          </li>
+        </ul>
+      </div>
     </footer>
   )
 }
