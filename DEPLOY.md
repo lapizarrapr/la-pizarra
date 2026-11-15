@@ -83,7 +83,7 @@ You do not create any tables. The first deploy builds them.
 
 ## Step 3. Cloudflare: photos (R2) and spam protection (Turnstile)
 
-Create an account at cloudflare.com and turn on two-step verification.
+Create an account at cloudflare.com. If you sign in with GitHub, the account has no password of its own and Cloudflare leaves two-step verification to GitHub: make sure it is on there (github.com → Settings → Password and authentication). If you sign up with an email and password instead, turn it on in Cloudflare under Profile → Authentication.
 
 ### 3a. The photo bucket
 
